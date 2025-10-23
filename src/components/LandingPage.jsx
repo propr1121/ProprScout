@@ -79,15 +79,58 @@ function LandingPage({ onEnterApp }) {
 
         {/* Floating particles */}
         <div className="absolute inset-0">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <div
               key={i}
               className="absolute w-2 h-2 bg-primary-400/20 rounded-full animate-float"
               style={{
-                left: `${20 + i * 10}%`,
-                top: `${30 + (i % 3) * 20}%`,
-                animationDelay: `${i * 0.5}s`,
+                left: `${15 + i * 7}%`,
+                top: `${20 + (i % 4) * 15}%`,
+                animationDelay: `${i * 0.3}s`,
+                animationDuration: `${3 + (i % 3)}s`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Floating geometric shapes */}
+        <div className="absolute inset-0">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={`shape-${i}`}
+              className="absolute opacity-10 animate-pulse"
+              style={{
+                left: `${10 + i * 15}%`,
+                top: `${10 + (i % 3) * 25}%`,
+                animationDelay: `${i * 0.8}s`,
                 animationDuration: `${4 + i}s`
+              }}
+            >
+              {i % 3 === 0 && (
+                <div className="w-8 h-8 border-2 border-primary-300 rotate-45" />
+              )}
+              {i % 3 === 1 && (
+                <div className="w-6 h-6 bg-primary-200 rounded-full" />
+              )}
+              {i % 3 === 2 && (
+                <div className="w-4 h-4 border border-primary-400 rotate-12" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Floating lines */}
+        <div className="absolute inset-0">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={`line-${i}`}
+              className="absolute h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent animate-pulse"
+              style={{
+                left: `${20 + i * 20}%`,
+                top: `${30 + i * 15}%`,
+                width: `${100 + i * 20}px`,
+                animationDelay: `${i * 1.2}s`,
+                animationDuration: `${6 + i}s`
               }}
             />
           ))}
@@ -107,7 +150,13 @@ function LandingPage({ onEnterApp }) {
             {/* Logo & Brand */}
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary-500 w-12 h-12 flex items-center justify-center">
-                <span className="text-white font-bold">P</span>
+                <svg width="32" height="32" viewBox="0 0 1200 750" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g fill="#FFFFFF" stroke="none">
+                    <path d="M669.6,407.4c0,2.6-2.1,4.8-4.8,4.8H600h-69.6v-67.6c0-1.3,0.5-2.5,1.4-3.4l64.8-64.8c1.9-1.9,4.9-1.9,6.8,0l64.8,64.8c0.9,0.9,1.4,2.1,1.4,3.4V407.4z" fill="#FFFFFF"/>
+                    <path d="M600,342.6l-69.6,69.6l61.4,61.4c3,3,8.2,0.9,8.2-3.4V342.6z" fill="#FFFFFF"/>
+                    <path d="M600,412.2h-69.6v-67.6c0-1.3,0.5-2.5,1.4-3.4l64.5-64.5c1.4-1.4,3.7-0.4,3.7,1.5V412.2z" fill="#FFFFFF"/>
+                  </g>
+                </svg>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
@@ -417,6 +466,103 @@ function LandingPage({ onEnterApp }) {
                   <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
                 </div>
               </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
+        {/* Background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div 
+            className="absolute top-10 right-10 w-64 h-64 bg-primary-100/20 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '0s' }}
+          />
+          <div 
+            className="absolute bottom-10 left-10 w-80 h-80 bg-primary-200/15 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '2s' }}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 font-heading mb-6">
+              Trusted by Real Estate Professionals
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              See what industry leaders are saying about ProprScout
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  SM
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Sarah Mitchell</h4>
+                  <p className="text-sm text-gray-600">Senior Real Estate Agent</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "ProprScout has revolutionized how I analyze properties. The AI insights help me provide clients with data-driven recommendations that consistently outperform market expectations."
+              </p>
+              <div className="flex text-primary-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+
+            {/* Testimonial 2 */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  MJ
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Michael Johnson</h4>
+                  <p className="text-sm text-gray-600">Property Investment Advisor</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "The accuracy of ProprScout's market analysis is unmatched. I've identified three undervalued properties that generated 40%+ returns within 6 months using their insights."
+              </p>
+              <div className="flex text-primary-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+
+            {/* Testimonial 3 */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  EL
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Emily Liu</h4>
+                  <p className="text-sm text-gray-600">Real Estate Broker</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "ProprScout's location intelligence features have helped me understand neighborhood dynamics like never before. My clients trust my recommendations more than ever."
+              </p>
+              <div className="flex text-primary-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
             </div>
           </div>
         </div>
