@@ -41,7 +41,7 @@ const BetaInvite = ({ isOpen, onClose, onJoin }) => {
             </div>
             
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              🔍 You're invited: Property Detective Beta
+              🔍 You're invited: Photo Location Search Beta
             </h2>
             
             <p className="text-gray-600">

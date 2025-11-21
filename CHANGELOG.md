@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Error Handling**: No mock data policy - real analysis only
 - **Responsive Design**: Mobile-first approach
 - **Accessibility**: ARIA labels and keyboard navigation
+- **Dashboard**: Comprehensive dashboard with metrics, charts, and analysis history
+- **Landing Page**: Premium landing page with animations, case study carousel, and consistent branding
+- **Floating Action Button**: Quick access menu from anywhere on dashboard
+- **Expandable Analysis History**: Click to view detailed property information
+- **Unified Upgrade Section**: Smart upsell with context-aware messaging
 
 ### Technical Features
 - **Frontend**: React 18 with Vite build system
@@ -32,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PropertyResults**: Analysis results display with map integration
 - **PropertyDetective**: Photo upload with drag & drop
 - **MapboxMap**: Interactive map with satellite imagery
+- **LandingPage**: Premium landing page with hero section, features, testimonials, case studies, blog, and CTA
+- **App.jsx**: Main application component with dashboard and navigation
 - **UpgradeModal**: Subscription management
 - **SharePrompt**: Referral system
 
@@ -44,10 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Design System
 - **Colors**: Emerald primary (#10b981), Teal secondary (#14b8a6)
-- **Typography**: Montserrat headings, Poppins body text
+- **Typography**: Montserrat headings (font-heading), Poppins body text
 - **Components**: Rounded buttons, card layouts, form inputs
 - **Animations**: Smooth transitions and hover effects
 - **Icons**: Lucide React icon library
+- **Gradients**: Consistent `bg-gradient-to-r from-primary-500 to-primary-600` for all primary buttons and logos
+- **Button Standards**: Uniform height (py-3), shape (rounded-lg), text size (text-base)
+- **Icon Presentation**: Premium styling with glow effects, gradient backgrounds, and rings
 
 ### Security
 - **Input Validation**: File type and size validation
@@ -76,24 +86,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic component structure
 - Property analysis hooks
 - URL parsing for major Portuguese portals
+- Dashboard with key metrics, activity chart, and analysis history
+- Landing page with premium design and animations
+- Floating action button for quick navigation
+- Expandable analysis history with detailed property information
+- Unified upgrade section with smart messaging
 
 ### Changed
 - Migrated from Leaflet to Mapbox GL JS
-- Updated design system to premium standards
+- Updated design system to premium standards with unified gradients
 - Improved error handling and user feedback
 - Enhanced mobile responsiveness
+- Consolidated dashboard sections for better UX
+- Standardized all buttons and icons to match design system
+- Unified upgrade flow with context-aware messaging
 
 ### Fixed
 - React-map-gl compatibility issues with Vite
-- Logo display and scaling issues
+- Logo display and scaling issues with gradient background
 - Map integration and marker positioning
 - Backend API connection and error handling
+- Dashboard navigation (logo now clickable to return to landing page)
+- Floating action button positioning (now center-right, fixed)
+- Icon consistency (all green icons use same gradient styling)
+- Button positioning (consistent alignment with flex-grow and mt-auto)
+- Status indicators (removed redundant green dots)
 
 ### Removed
 - Mock data fallbacks
 - Unused dependencies
 - Legacy Leaflet components
 - Complex logo implementations
+- Redundant Quick Action cards (replaced by FAB)
+- Redundant My Activity section (integrated into Recent Analyses)
+- Duplicate Credits Remaining card (credits shown in header only)
+- Separate Total Analyses and Success Rate cards (integrated into chart section)
 
 ## [0.8.0] - 2024-01-XX (Beta)
 
@@ -147,13 +174,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Development Notes
 
-### Recent Changes (Current Session)
-- ✅ **Mapbox Integration**: Replaced Leaflet with Mapbox GL JS for better performance
-- ✅ **GeoCLIP Integration**: AI-powered image geolocation with confidence validation
-- ✅ **Error Handling**: Implemented no-mock-data policy for trust and credibility
-- ✅ **UI/UX Overhaul**: Premium design system with proper color palette and typography
-- ✅ **Logo Simplification**: Reverted to simple house icon for reliability
-- ✅ **Documentation**: Comprehensive technical and deployment documentation
+### Recent Changes (Current Session - November 2, 2024)
+- ✅ **Functional Notifications System**: 
+  - Fully interactive notifications dropdown menu
+  - Clickable notifications with type-based icons (success, warning, info)
+  - Navigation to relevant sections when clicking notifications
+  - "Mark all read" functionality
+  - Color-coded unread indicators with dynamic badge count
+- ✅ **Clickable Credits Display**:
+  - Credits display in header is now clickable button
+  - Opens comprehensive "Credits & Usage" modal
+  - Modal shows current balance, remaining actions, credit costs breakdown
+  - Side-by-side free vs premium comparison
+  - Modal includes upgrade CTA that scrolls to upgrade section
+- ✅ **Free Tier vs Premium Messaging**:
+  - Free tier banner added to upgrade section with "Current Plan" label
+  - Clear freemium model: 15 credits/month (3 analyses) for free tier
+  - Premium benefits clearly highlighted: Unlimited analyses
+  - Pricing in euros: €29/month or €290/year
+- ✅ **Upgrade Section Improvements**:
+  - "Current Plan" banner positioned above "Unlock Premium Features" heading
+  - Proper spacing hierarchy maintained
+  - Full width banner aligned with trust indicators line below
+
+### Previous Changes (November 1, 2024)
+- ✅ **Branding Consistency**: Logo and FAB main button changed to green gradient (`bg-gradient-to-r from-primary-500 to-primary-600`)
+- ✅ **FAB Enhancements**: 
+  - Sub-menu buttons with premium light green styling and darker borders
+  - Fixed vertical centering (`top-1/2 -translate-y-1/2`)
+  - Added hover tooltips to all shortcut buttons
+- ✅ **Upgrade Section Improvements**:
+  - Enhanced spacing hierarchy (mb-8 between heading and benefits, mb-6 before trust indicators)
+  - Premium styling with gradients and decorative elements restored
+  - Trust indicators updated: "24/7 Priority Support", "Enterprise Security", "Custom Integrations"
+  - Pricing card widened (lg:w-80) for better text layout
+  - Heading positioned higher with negative margin
+- ✅ **Stats Bar Updates**:
+  - Light green gradient background (`from-primary-50/80 via-primary-50 to-primary-50/80`)
+  - All icons and dots changed to green branding
+  - Proper alignment with content boundaries
+  - Compact sizing maintained
+- ✅ **Chart Section**:
+  - Premium empty state added when no activity data
+  - Green branding on chart bar hover effects
+- ✅ **Pricing Localization**: All pricing converted from dollars ($) to euros (€)
+  - Upgrade pricing: €29/month or €290/year
+  - Property values in analysis history: €1.2M, €850K, €1.8M, €650K, €2.1M
+- ✅ **Monthly Analyses Color-Coding**: Green when positive (≥0), red when negative (<0)
+- ✅ **Content Padding**: Added bottom padding (pb-24) to dashboard content for proper spacing above fixed stats bar
 
 ### Known Issues
 - None currently identified

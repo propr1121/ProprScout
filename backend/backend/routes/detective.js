@@ -13,6 +13,7 @@ import { predictLocation } from '../services/geoclip.js';
 import { reverseGeocode } from '../services/nominatim.js';
 import { CacheService } from '../services/redis.js';
 import logger from '../utils/logger.js';
+import { notifyAnalysisComplete, checkLowCreditsAndNotify } from '../utils/notifications.js';
 
 const router = express.Router();
 
@@ -132,8 +133,18 @@ router.post('/analyze', upload.single('image'), async (req, res) => {
 
     await detectiveAnalysis.save();
 
-    // Update user usage
+    // Update user usage and deduct credits
     await updateUserUsage(user_id);
+    
+    // Create analysis complete notification
+    await notifyAnalysisComplete(user_id, {
+      _id: detectiveAnalysis._id,
+      address: detectiveAnalysis.address,
+      type: 'property_detective'
+    });
+    
+    // Check for low credits and notify
+    await checkLowCreditsAndNotify(user_id);
 
     logger.info(`✅ Property Detective analysis completed: ${detectiveAnalysis._id}`);
 
@@ -205,7 +216,13 @@ router.get('/history', async (req, res) => {
       offset = 0
     } = req.query;
 
-    const analyses = await DetectiveAnalysis.find({ user_id })
+    // Handle anonymous users - query all analyses for now
+    // In production, you'd want to filter by actual user_id
+    const query = user_id === 'anonymous' || !user_id 
+      ? {} // Return all analyses for anonymous users
+      : { user_id };
+
+    const analyses = await DetectiveAnalysis.find(query)
       .sort({ created_at: -1 })
       .limit(parseInt(limit))
       .skip(parseInt(offset))
@@ -393,16 +410,60 @@ async function checkUserQuota(userId) {
 }
 
 /**
- * Helper function to update user usage
+ * Helper function to update user usage and deduct credits
  */
 async function updateUserUsage(userId) {
   try {
-    const user = await User.findById(userId);
-    if (user) {
-      await user.incrementUsage();
+    // For anonymous users, create a temporary user record
+    if (userId === 'anonymous') {
+      // Create or get anonymous user
+      let user = await User.findById(userId);
+      if (!user) {
+        user = new User({
+          _id: userId,
+          email: `${userId}@anonymous.local`,
+          name: 'Anonymous User',
+          credits: {
+            balance: 15,
+            total_earned: 15,
+            total_spent: 0
+          }
+        });
+        await user.save();
+      }
+      
+      // Check and recharge credits
+      user.checkAndRechargeCredits();
+      
+      // Deduct 5 credits for analysis
+      try {
+        await user.deductCredits(5);
+        await user.incrementUsage();
+        logger.info(`✅ Deducted 5 credits for user ${userId}. Balance: ${user.credits.balance}`);
+      } catch (creditError) {
+        logger.warn(`⚠️ Insufficient credits for user ${userId}: ${creditError.message}`);
+        throw new Error('Insufficient credits. Please upgrade your plan.');
+      }
+    } else {
+      const user = await User.findById(userId);
+      if (user) {
+        // Check and recharge credits
+        user.checkAndRechargeCredits();
+        
+        // Deduct 5 credits for analysis
+        try {
+          await user.deductCredits(5);
+          await user.incrementUsage();
+          logger.info(`✅ Deducted 5 credits for user ${userId}. Balance: ${user.credits.balance}`);
+        } catch (creditError) {
+          logger.warn(`⚠️ Insufficient credits for user ${userId}: ${creditError.message}`);
+          throw new Error('Insufficient credits. Please upgrade your plan.');
+        }
+      }
     }
   } catch (error) {
     logger.error('Update usage failed:', error);
+    throw error;
   }
 }
 

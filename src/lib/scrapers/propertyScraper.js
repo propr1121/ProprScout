@@ -18,7 +18,7 @@ export async function scrapeProperty(url) {
     let propertyData;
     try {
       console.log('🔄 Attempting server-side scraping...');
-      const response = await fetch('http://localhost:3002/api/scrape', {
+      const response = await fetch('http://localhost:6000/api/properties/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
@@ -40,8 +40,15 @@ export async function scrapeProperty(url) {
       try {
         propertyData = await browserScrape(url);
       } catch (browserError) {
-        console.log('⚠️ Browser scraping also failed:', browserError.message);
-        throw new Error(browserError.message);
+        console.log('⚠️ Browser scraping also failed, trying Firecrawl fallback:', browserError.message);
+        try {
+          // Lazy import to avoid blocking page load
+          const { scrapeWithFirecrawl } = await import('./firecrawlScraper.js');
+          propertyData = await scrapeWithFirecrawl(url);
+        } catch (firecrawlError) {
+          console.log('⚠️ Firecrawl scraping also failed:', firecrawlError.message);
+          throw new Error('All scraping methods failed. Please try again or check the URL.');
+        }
       }
     }
     

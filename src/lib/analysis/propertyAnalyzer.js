@@ -23,46 +23,54 @@ export function analyzeProperty(propertyData) {
       coordinates
     } = propertyData;
 
-  // Price analysis
-  const pricePerM2 = (price && area) ? price / area : null;
-  const priceAnalysis = analyzePrice(price, area, location);
+  // Price efficiency analysis
+  const priceAnalysis = analyzePrice(price, area, rooms, location);
   
   // Location analysis
   const locationAnalysis = analyzeLocation(location, coordinates, features);
   
-  // Property analysis
-  const propertyAnalysis = analyzePropertyFeatures(area, rooms, bathrooms, features);
+  // Space configuration analysis
+  const spaceAnalysis = analyzePropertyFeatures(area, rooms, bathrooms, features);
   
-  // Calculate overall score
-  const overallScore = Math.round(
+  // Data quality checks
+  const dataQuality = checkDataQuality(propertyData);
+  
+  // Listing quality score
+  const listingQuality = assessListingQuality(propertyData);
+  
+  // Calculate overall score (simplified - focus on efficiency metrics)
+  const overallScore = dataQuality.hasCriticalIssues ? 0 : Math.round(
     (priceAnalysis.score * 0.3) + 
-    (locationAnalysis.score * 0.4) + 
-    (propertyAnalysis.score * 0.3)
+    (locationAnalysis.score * 0.3) + 
+    (spaceAnalysis.score * 0.4)
   );
 
   // Generate recommendations
   const recommendations = generateRecommendations(propertyData, {
     priceAnalysis,
     locationAnalysis,
-    propertyAnalysis
+    propertyAnalysis: spaceAnalysis
   });
 
   // Identify risks and opportunities
-  const risks = identifyRisks(propertyData, { priceAnalysis, locationAnalysis, propertyAnalysis });
-  const opportunities = identifyOpportunities(propertyData, { priceAnalysis, locationAnalysis, propertyAnalysis });
+  const risks = identifyRisks(propertyData, { priceAnalysis, locationAnalysis, propertyAnalysis: spaceAnalysis });
+  const opportunities = identifyOpportunities(propertyData, { priceAnalysis, locationAnalysis, propertyAnalysis: spaceAnalysis });
 
     return {
       overallScore: {
         score: overallScore,
-        explanation: 'Overall score is a weighted average of price, location, and property features analysis.'
+        explanation: 'Overall score based on price efficiency, location, and space configuration. Score may be 0 if critical data quality issues are detected.'
       },
-      priceAnalysis,
-      locationAnalysis,
-      propertyAnalysis,
+      priceEfficiency: priceAnalysis,
+      spaceConfiguration: spaceAnalysis,
+      locationContext: locationAnalysis,
+      dataQuality,
+      listingQuality,
       recommendations,
       risks,
       opportunities,
-      analyzedAt: new Date().toISOString()
+      analyzedAt: new Date().toISOString(),
+      disclaimer: '⚠️ This analysis is based on listing data only. For market comparisons, investment advice, and validation, consult local real estate professionals.'
     };
   } catch (error) {
     console.error('❌ Analysis failed:', error);
@@ -71,59 +79,53 @@ export function analyzeProperty(propertyData) {
 }
 
 /**
- * Analyze price and market position
+ * Analyze price efficiency - validated metrics only
  */
-function analyzePrice(price, area, location) {
+function analyzePrice(price, area, rooms, location) {
   if (!price || !area || price <= 0 || area <= 0) {
     return {
       score: 0,
-      marketComparison: 'Unable to analyze - missing price or area data',
-      valueAssessment: 'Insufficient data for price analysis',
       pricePerM2: null,
-      marketAverage: null,
+      pricePerRoom: null,
+      pricePerBedroom: null,
+      spaceEfficiency: null,
+      costPerBedroom: null,
       dataAvailable: false,
-      explanation: 'Price analysis requires both price and area information. Please verify the property listing contains these details.'
+      explanation: 'Price efficiency analysis requires both price and area information. Please verify the property listing contains these details.',
+      disclaimer: 'For market comparison, consult local real estate professionals.'
     };
   }
 
   const pricePerM2 = price / area;
-  
-  // Basic price analysis without mock market data
-  let score = 50;
-  let marketComparison = 'Price analysis limited - no market data available';
-  let valueAssessment = 'Unable to compare with market - verify pricing independently';
+  const pricePerRoom = rooms ? price / rooms : null;
+  const pricePerBedroom = rooms ? price / rooms : null; // Assuming rooms = bedrooms for now
+  const spaceEfficiency = rooms ? area / rooms : null; // m² per room
+  const costPerBedroom = rooms ? price / rooms : null;
 
-  // Simple price per m² analysis based on general Portuguese market ranges
-  if (pricePerM2 < 1000) {
-    score = 90;
-    marketComparison = 'Very low price per m²';
-    valueAssessment = 'Exceptionally low pricing - verify property condition and location';
-  } else if (pricePerM2 < 2000) {
-    score = 75;
-    marketComparison = 'Low to moderate price per m²';
-    valueAssessment = 'Competitive pricing - typical for smaller cities or outskirts';
-  } else if (pricePerM2 < 4000) {
-    score = 60;
-    marketComparison = 'Moderate price per m²';
-    valueAssessment = 'Standard pricing for urban areas';
-  } else if (pricePerM2 < 6000) {
-    score = 40;
-    marketComparison = 'High price per m²';
-    valueAssessment = 'Premium pricing - typical for prime locations';
-  } else {
-    score = 20;
-    marketComparison = 'Very high price per m²';
-    valueAssessment = 'Luxury pricing - verify location and amenities justify cost';
+  // Calculate efficiency score (0-100) based on space efficiency
+  let score = 50;
+  if (spaceEfficiency) {
+    if (spaceEfficiency > 30) {
+      score = 85; // Very spacious
+    } else if (spaceEfficiency > 25) {
+      score = 70; // Good space
+    } else if (spaceEfficiency > 20) {
+      score = 60; // Average space
+    } else {
+      score = 40; // Compact
+    }
   }
 
   return {
     score,
-    marketComparison,
-    valueAssessment,
-    pricePerM2: pricePerM2 ? Math.round(pricePerM2) : null,
-    marketAverage: null,
+    pricePerM2: Math.round(pricePerM2),
+    pricePerRoom: pricePerRoom ? Math.round(pricePerRoom) : null,
+    pricePerBedroom: pricePerBedroom ? Math.round(pricePerBedroom) : null,
+    spaceEfficiency: spaceEfficiency ? Math.round(spaceEfficiency * 10) / 10 : null,
+    costPerBedroom: costPerBedroom ? Math.round(costPerBedroom) : null,
     dataAvailable: true,
-    explanation: 'Price analysis based on general market ranges. For accurate market comparison, consult local real estate professionals or market reports.'
+    explanation: 'Price efficiency metrics calculated from listing data. These are objective calculations, not market comparisons.',
+    disclaimer: '⚠️ For market comparison, consult local real estate professionals or market reports.'
   };
 }
 
@@ -193,57 +195,113 @@ function analyzeLocation(location, coordinates, features) {
 }
 
 /**
- * Analyze property features and condition
+ * Analyze space configuration - validated metrics only
  */
 function analyzePropertyFeatures(area, rooms, bathrooms, features) {
-  let score = 50;
-  let sizeScore = 50;
-  let conditionScore = 50;
-  let featuresScore = 50;
-
-  // Size analysis
+  // Space configuration analysis
   const areaPerRoom = (area && rooms) ? area / rooms : null;
-  if (areaPerRoom && areaPerRoom > 30) {
-    sizeScore = 85;
-  } else if (areaPerRoom && areaPerRoom > 25) {
-    sizeScore = 70;
-  } else if (areaPerRoom && areaPerRoom > 20) {
-    sizeScore = 60;
-  } else if (areaPerRoom) {
-    sizeScore = 40;
-  } else {
-    sizeScore = 50; // Default when no data
-  }
-
-  // Bathroom ratio
   const bathroomRatio = (bathrooms && rooms) ? bathrooms / rooms : null;
-  if (bathroomRatio && bathroomRatio >= 1) {
-    conditionScore += 20;
-  } else if (bathroomRatio && bathroomRatio >= 0.5) {
-    conditionScore += 10;
+  
+  // Space efficiency assessment
+  let spaceEfficiency = 'standard';
+  let spaceEfficiencyNotes = [];
+  
+  if (areaPerRoom) {
+    if (areaPerRoom > 30) {
+      spaceEfficiency = 'spacious';
+      spaceEfficiencyNotes.push('Excellent space per room');
+    } else if (areaPerRoom > 25) {
+      spaceEfficiency = 'good';
+      spaceEfficiencyNotes.push('Good space per room');
+    } else if (areaPerRoom > 20) {
+      spaceEfficiency = 'standard';
+      spaceEfficiencyNotes.push('Standard space per room');
+    } else {
+      spaceEfficiency = 'compact';
+      spaceEfficiencyNotes.push('Compact space per room');
+    }
+    
+    // Check for unusual configurations
+    if (rooms && areaPerRoom < 18) {
+      spaceEfficiencyNotes.push(`Unusual: ${rooms} rooms in ${area}m² (typically ${Math.max(1, Math.floor(area / 20))}-bed space)`);
+    }
   }
-
-  // Features analysis
-  const premiumFeatures = ['Piscina', 'Jardim', 'Terraço', 'Vista Mar', 'Elevador'];
-  const modernFeatures = ['Ar Condicionado', 'Aquecimento Central', 'WiFi'];
-  const convenienceFeatures = ['Estacionamento', 'Garagem', 'Segurança'];
-
-  const premiumCount = features.filter(f => premiumFeatures.includes(f)).length;
-  const modernCount = features.filter(f => modernFeatures.includes(f)).length;
-  const convenienceCount = features.filter(f => convenienceFeatures.includes(f)).length;
-
-  featuresScore = Math.min(100, 50 + (premiumCount * 15) + (modernCount * 10) + (convenienceCount * 5));
-
-  // Overall property score
-  score = Math.round((sizeScore * 0.4) + (conditionScore * 0.3) + (featuresScore * 0.3));
+  
+  // Bathroom ratio assessment
+  let bathroomAssessment = 'standard';
+  let bathroomNotes = [];
+  
+  if (bathroomRatio) {
+    if (bathroomRatio >= 1) {
+      bathroomAssessment = 'excellent';
+      bathroomNotes.push('Excellent bathroom ratio: 1+ bathroom per bedroom');
+    } else if (bathroomRatio >= 0.5) {
+      bathroomAssessment = 'good';
+      bathroomNotes.push(`Good bathroom ratio: ${Math.round(bathroomRatio * 100)}% bathroom per bedroom`);
+    } else {
+      bathroomAssessment = 'limited';
+      bathroomNotes.push(`Limited bathroom ratio: ${Math.round(bathroomRatio * 100)}% bathroom per bedroom`);
+    }
+  }
+  
+  // Feature completeness analysis
+  const standardFeatures = ['Estacionamento', 'Parking', 'Garagem', 'Garage', 'Aquecimento', 'Heating', 'Cozinha', 'Kitchen'];
+  const premiumFeatures = ['Piscina', 'Pool', 'Jardim', 'Garden', 'Terraço', 'Terrace', 'Vista Mar', 'Sea View', 'Elevador', 'Elevator'];
+  const modernFeatures = ['Ar Condicionado', 'Air Conditioning', 'Aquecimento Central', 'Central Heating', 'WiFi', 'Wi-Fi'];
+  
+  const standardCount = features.filter(f => 
+    standardFeatures.some(sf => f.toLowerCase().includes(sf.toLowerCase()))
+  ).length;
+  
+  const premiumCount = features.filter(f => 
+    premiumFeatures.some(pf => f.toLowerCase().includes(pf.toLowerCase()))
+  ).length;
+  
+  const modernCount = features.filter(f => 
+    modernFeatures.some(mf => f.toLowerCase().includes(mf.toLowerCase()))
+  ).length;
+  
+  const totalFeatures = features.length;
+  const completenessScore = Math.min(10, Math.round((standardCount / standardFeatures.length) * 5 + (totalFeatures > 5 ? 3 : totalFeatures > 3 ? 2 : 1)));
+  
+  const includedFeatures = features.length > 0 ? features : [];
+  const missingStandardFeatures = standardFeatures.filter(sf => 
+    !features.some(f => f.toLowerCase().includes(sf.toLowerCase()))
+  );
+  
+  // Calculate overall score
+  let score = 50;
+  if (areaPerRoom) {
+    if (areaPerRoom > 30) score += 15;
+    else if (areaPerRoom > 25) score += 10;
+    else if (areaPerRoom > 20) score += 5;
+    else score -= 5;
+  }
+  
+  if (bathroomRatio) {
+    if (bathroomRatio >= 1) score += 10;
+    else if (bathroomRatio >= 0.5) score += 5;
+    else score -= 5;
+  }
+  
+  score = Math.min(100, Math.max(0, score));
 
   return {
     score,
-    sizeScore,
-    conditionScore,
-    featuresScore,
+    spaceEfficiency,
     areaPerRoom: areaPerRoom ? Math.round(areaPerRoom * 10) / 10 : null,
-    bathroomRatio: bathroomRatio ? Math.round(bathroomRatio * 10) / 10 : null
+    bathroomRatio: bathroomRatio ? Math.round(bathroomRatio * 10) / 10 : null,
+    bathroomAssessment,
+    spaceEfficiencyNotes,
+    bathroomNotes,
+    featureCompleteness: {
+      score: completenessScore,
+      total: totalFeatures,
+      included: includedFeatures,
+      premium: premiumCount,
+      modern: modernCount,
+      missingStandard: missingStandardFeatures.slice(0, 3) // Limit to first 3
+    }
   };
 }
 
@@ -269,23 +327,23 @@ function generateRecommendations(propertyData, analysis) {
   }
 
   // Property-based recommendations
-  if (propertyAnalysis.sizeScore > 80) {
+  if (propertyAnalysis.areaPerRoom && propertyAnalysis.areaPerRoom > 30) {
     recommendations.push('Spacious property - great for families or home office');
-  } else if (propertyAnalysis.sizeScore < 50) {
+  } else if (propertyAnalysis.areaPerRoom && propertyAnalysis.areaPerRoom < 20) {
     recommendations.push('Compact space - verify it meets your space requirements');
   }
 
   // Feature-based recommendations
-  if (propertyData.features.includes('Piscina')) {
+  if (propertyData.features && propertyData.features.some(f => f.toLowerCase().includes('piscina'))) {
     recommendations.push('Pool maintenance costs should be factored into budget');
   }
-  if (propertyData.features.includes('Jardim')) {
+  if (propertyData.features && propertyData.features.some(f => f.toLowerCase().includes('jardim'))) {
     recommendations.push('Garden space adds significant value and lifestyle benefits');
   }
 
   // General recommendations
   recommendations.push('Verify all property details with official documentation');
-  recommendations.push('Consider future resale potential and market trends');
+  recommendations.push('For market comparison and investment analysis, consult local real estate professionals');
 
   return recommendations;
 }
@@ -298,18 +356,18 @@ function identifyRisks(propertyData, analysis) {
   const { priceAnalysis, locationAnalysis, propertyAnalysis } = analysis;
 
   if (priceAnalysis.score < 30) {
-    risks.push('Significantly overpriced - may be difficult to resell');
+    risks.push('Significantly high price per m² - verify pricing independently');
   }
 
   if (locationAnalysis.transportScore < 40) {
     risks.push('Limited transport access may affect future resale value');
   }
 
-  if (propertyAnalysis.conditionScore < 40) {
-    risks.push('Property may require significant maintenance or renovation');
+  if (propertyAnalysis.areaPerRoom && propertyAnalysis.areaPerRoom < 15) {
+    risks.push('Very compact space may limit resale market');
   }
 
-  if (propertyData.area < 50) {
+  if (propertyData.area && propertyData.area < 50) {
     risks.push('Very small property may limit resale market');
   }
 
@@ -323,21 +381,196 @@ function identifyOpportunities(propertyData, analysis) {
   const opportunities = [];
   const { priceAnalysis, locationAnalysis, propertyAnalysis } = analysis;
 
-  if (priceAnalysis.score > 80) {
-    opportunities.push('Strong value proposition - potential for capital appreciation');
+  if (priceAnalysis.spaceEfficiency && priceAnalysis.spaceEfficiency > 25) {
+    opportunities.push('Good space efficiency - efficient use of area');
   }
 
-  if (locationAnalysis.score > 80) {
-    opportunities.push('Premium location with strong rental and resale potential');
+  if (locationAnalysis.score > 70) {
+    opportunities.push('Good location with potential for value appreciation');
   }
 
-  if (propertyAnalysis.featuresScore > 80) {
-    opportunities.push('Well-appointed property with modern amenities');
+  if (propertyAnalysis.featureCompleteness && propertyAnalysis.featureCompleteness.premium > 0) {
+    opportunities.push('Premium features add significant lifestyle and resale value');
   }
 
-  if (propertyData.features.includes('Piscina') || propertyData.features.includes('Jardim')) {
+  if (propertyData.features && propertyData.features.some(f => f.toLowerCase().includes('piscina') || f.toLowerCase().includes('jardim'))) {
     opportunities.push('Outdoor amenities add significant lifestyle and resale value');
   }
 
   return opportunities;
+}
+
+/**
+ * Check data quality and detect red flags
+ */
+function checkDataQuality(propertyData) {
+  const issues = [];
+  const warnings = [];
+  let hasCriticalIssues = false;
+  
+  const { price, area, rooms, bathrooms, location, features = [], images = [], description } = propertyData;
+  
+  // Critical data checks
+  if (!price || price <= 0) {
+    issues.push('Missing or invalid price');
+    hasCriticalIssues = true;
+  } else if (price < 1000) {
+    warnings.push('Price seems unusually low - verify data accuracy');
+  } else if (price > 10000000) {
+    warnings.push('Price seems unusually high - verify data accuracy');
+  }
+  
+  if (!area || area <= 0) {
+    issues.push('Missing or invalid area');
+    hasCriticalIssues = true;
+  } else if (area < 20) {
+    warnings.push('Area seems unusually small - verify data accuracy');
+  } else if (area > 1000) {
+    warnings.push('Area seems unusually large - verify data accuracy');
+  }
+  
+  if (!location || location.trim() === '') {
+    issues.push('Missing location');
+    hasCriticalIssues = true;
+  }
+  
+  // Consistency checks
+  if (price && area && rooms) {
+    const pricePerM2 = price / area;
+    const areaPerRoom = area / rooms;
+    
+    if (pricePerM2 < 100) {
+      warnings.push('Price per m² seems unusually low - verify property condition');
+    } else if (pricePerM2 > 10000) {
+      warnings.push('Price per m² seems unusually high - verify location and amenities');
+    }
+    
+    if (areaPerRoom < 10) {
+      warnings.push(`Area per room (${areaPerRoom.toFixed(1)}m²) seems small for ${rooms} rooms - verify data accuracy`);
+    } else if (areaPerRoom > 100) {
+      warnings.push(`Area per room (${areaPerRoom.toFixed(1)}m²) seems large for ${rooms} rooms - verify data accuracy`);
+    }
+  }
+  
+  // Missing data checks
+  if (!rooms) {
+    warnings.push('Room count not specified');
+  }
+  
+  if (!bathrooms) {
+    warnings.push('Bathroom count not specified');
+  }
+  
+  if (!features || features.length === 0) {
+    warnings.push('No features listed');
+  }
+  
+  if (!images || images.length === 0) {
+    warnings.push('No images available');
+  } else if (images.length < 3) {
+    warnings.push('Limited images available');
+  }
+  
+  if (!description || description.trim().length < 50) {
+    warnings.push('Description is missing or too brief');
+  }
+  
+  return {
+    hasCriticalIssues,
+    issues,
+    warnings,
+    completeness: {
+      price: !!price,
+      area: !!area,
+      location: !!location,
+      rooms: !!rooms,
+      bathrooms: !!bathrooms,
+      features: features && features.length > 0,
+      images: images && images.length > 0,
+      description: !!description && description.trim().length > 50
+    }
+  };
+}
+
+/**
+ * Assess listing quality score
+ */
+function assessListingQuality(propertyData) {
+  const { price, area, rooms, bathrooms, location, features = [], images = [], description } = propertyData;
+  
+  let score = 0;
+  const details = [];
+  const missing = [];
+  
+  // Data completeness (40 points)
+  if (price) { score += 5; details.push('Price'); } else missing.push('Price');
+  if (area) { score += 5; details.push('Area'); } else missing.push('Area');
+  if (location) { score += 5; details.push('Location'); } else missing.push('Location');
+  if (rooms) { score += 5; details.push('Rooms'); } else missing.push('Rooms');
+  if (bathrooms) { score += 5; details.push('Bathrooms'); } else missing.push('Bathrooms');
+  if (features && features.length > 0) { score += 10; details.push(`${features.length} features`); } else missing.push('Features');
+  if (images && images.length > 0) { score += 5; details.push(`${images.length} photos`); } else missing.push('Photos');
+  
+  // Description quality (20 points)
+  if (description) {
+    const descLength = description.trim().length;
+    if (descLength > 500) {
+      score += 20;
+      details.push('Detailed description');
+    } else if (descLength > 200) {
+      score += 15;
+      details.push('Good description');
+    } else if (descLength > 50) {
+      score += 10;
+      details.push('Brief description');
+    } else {
+      score += 5;
+      details.push('Minimal description');
+    }
+  } else {
+    missing.push('Description');
+  }
+  
+  // Photo quality indicators (20 points)
+  if (images && images.length > 0) {
+    if (images.length >= 10) {
+      score += 20;
+      details.push('Excellent photos');
+    } else if (images.length >= 5) {
+      score += 15;
+      details.push('Good photos');
+    } else if (images.length >= 3) {
+      score += 10;
+      details.push('Adequate photos');
+    } else {
+      score += 5;
+      details.push('Limited photos');
+    }
+  }
+  
+  // Feature specificity (20 points)
+  if (features && features.length > 0) {
+    if (features.length >= 10) {
+      score += 20;
+      details.push('Comprehensive features');
+    } else if (features.length >= 5) {
+      score += 15;
+      details.push('Good feature list');
+    } else if (features.length >= 3) {
+      score += 10;
+      details.push('Basic features');
+    } else {
+      score += 5;
+      details.push('Minimal features');
+    }
+  }
+  
+  score = Math.min(100, score);
+  
+  return {
+    score,
+    details,
+    missing,
+    level: score >= 80 ? 'excellent' : score >= 60 ? 'good' : score >= 40 ? 'fair' : 'poor'
+  };
 }

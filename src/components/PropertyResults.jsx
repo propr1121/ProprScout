@@ -141,7 +141,11 @@ export default function PropertyResults({ result, loading, error }) {
   }
 
   const { propertyData, analysis } = result;
-  const { overallScore, priceAnalysis, locationAnalysis, propertyAnalysis, recommendations, risks, opportunities } = analysis;
+  // Support both old and new structure for backward compatibility
+  const priceEfficiency = analysis.priceEfficiency || analysis.priceAnalysis;
+  const locationContext = analysis.locationContext || analysis.locationAnalysis;
+  const spaceConfiguration = analysis.spaceConfiguration || analysis.propertyAnalysis;
+  const { overallScore, dataQuality, listingQuality, recommendations, risks, opportunities, disclaimer } = analysis;
   const overallDisplay = getOverallScoreDisplay(overallScore.score);
 
   return (
@@ -220,9 +224,53 @@ export default function PropertyResults({ result, loading, error }) {
         </div>
       </div>
 
+      {/* Disclaimer Banner */}
+      {disclaimer && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 animate-fade-in">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-800">{disclaimer}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Data Quality Warnings */}
+      {dataQuality && (dataQuality.issues.length > 0 || dataQuality.warnings.length > 0) && (
+        <div className={`border-l-4 rounded-lg p-4 ${dataQuality.hasCriticalIssues ? 'bg-red-50 border-red-400' : 'bg-yellow-50 border-yellow-400'}`}>
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <AlertTriangle className={`w-5 h-5 mt-0.5 ${dataQuality.hasCriticalIssues ? 'text-red-400' : 'text-yellow-400'}`} />
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className={`text-sm font-medium mb-2 ${dataQuality.hasCriticalIssues ? 'text-red-800' : 'text-yellow-800'}`}>
+                {dataQuality.hasCriticalIssues ? 'Critical Data Issues' : 'Data Quality Warnings'}
+              </h3>
+              {dataQuality.issues.length > 0 && (
+                <ul className="list-disc list-inside space-y-1 mb-2">
+                  {dataQuality.issues.map((issue, idx) => (
+                    <li key={idx} className="text-sm text-red-700">{issue}</li>
+                  ))}
+                </ul>
+              )}
+              {dataQuality.warnings.length > 0 && (
+                <ul className="list-disc list-inside space-y-1">
+                  {dataQuality.warnings.map((warning, idx) => (
+                    <li key={idx} className="text-sm text-yellow-700">{warning}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Premium Score Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Price Analysis Card */}
+        {/* Price Efficiency Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -230,12 +278,12 @@ export default function PropertyResults({ result, loading, error }) {
                 <DollarSign className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900 font-heading">Price Analysis</h3>
-                <p className="text-sm text-gray-600">Market value assessment</p>
+                <h3 className="text-xl font-bold text-gray-900 font-heading">Price Efficiency</h3>
+                <p className="text-sm text-gray-600">Calculated metrics</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-primary-600">{priceAnalysis.score}</div>
+              <div className="text-4xl font-bold text-primary-600">{priceEfficiency.score}</div>
               <div className="text-sm text-gray-600">/100</div>
             </div>
           </div>
@@ -243,37 +291,53 @@ export default function PropertyResults({ result, loading, error }) {
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Price Score</span>
-              <span>{priceAnalysis.score}/100</span>
+              <span>Efficiency Score</span>
+              <span>{priceEfficiency.score}/100</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
                 className="bg-gradient-to-r from-primary-400 to-primary-600 h-3 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${priceAnalysis.score}%` }}
+                style={{ width: `${priceEfficiency.score}%` }}
               ></div>
             </div>
           </div>
           
           <div className="space-y-4">
-            <div className="p-4 bg-primary-50 rounded-xl">
-              <div className="text-sm font-semibold text-primary-800 mb-1">{priceAnalysis.marketComparison}</div>
-              <div className="text-xs text-primary-600">{priceAnalysis.valueAssessment}</div>
-            </div>
+            {priceEfficiency.explanation && (
+              <div className="p-4 bg-primary-50 rounded-xl">
+                <div className="text-xs text-primary-700">{priceEfficiency.explanation}</div>
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{priceAnalysis.pricePerM2}€</div>
-                <div className="text-xs text-gray-600">Price/m²</div>
-              </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{priceAnalysis.marketAverage}€</div>
-                <div className="text-xs text-gray-600">Market Avg</div>
-              </div>
+              {priceEfficiency.pricePerM2 && (
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-900">{priceEfficiency.pricePerM2.toLocaleString()}€</div>
+                  <div className="text-xs text-gray-600">Price/m²</div>
+                </div>
+              )}
+              {priceEfficiency.spaceEfficiency && (
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-900">{priceEfficiency.spaceEfficiency}m²</div>
+                  <div className="text-xs text-gray-600">Space/Room</div>
+                </div>
+              )}
+              {priceEfficiency.pricePerRoom && (
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-bold text-gray-900">{priceEfficiency.pricePerRoom.toLocaleString()}€</div>
+                  <div className="text-xs text-gray-600">Price/Room</div>
+                </div>
+              )}
+              {priceEfficiency.disclaimer && (
+                <div className="col-span-2 p-3 bg-amber-50 rounded-lg">
+                  <div className="text-xs text-amber-700">{priceEfficiency.disclaimer}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Location Analysis Card */}
+        {/* Location Context Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -281,12 +345,12 @@ export default function PropertyResults({ result, loading, error }) {
                 <MapPin className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Location Analysis</h3>
-                <p className="text-sm text-gray-600">Neighborhood assessment</p>
+                <h3 className="text-xl font-bold text-gray-900">Location Context</h3>
+                <p className="text-sm text-gray-600">Area information</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-blue-600">{locationAnalysis.score}</div>
+              <div className="text-4xl font-bold text-blue-600">{locationContext.score}</div>
               <div className="text-sm text-gray-600">/100</div>
             </div>
           </div>
@@ -295,36 +359,41 @@ export default function PropertyResults({ result, loading, error }) {
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Location Score</span>
-              <span>{locationAnalysis.score}/100</span>
+              <span>{locationContext.score}/100</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
                 className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${locationAnalysis.score}%` }}
+                style={{ width: `${locationContext.score}%` }}
               ></div>
             </div>
           </div>
           
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 rounded-xl">
-              <div className="text-sm font-semibold text-blue-800 mb-1">{locationAnalysis.neighborhood}</div>
-              <div className="text-xs text-blue-600">Neighborhood quality</div>
+              <div className="text-sm font-semibold text-blue-800 mb-1">{locationContext.neighborhood}</div>
+              <div className="text-xs text-blue-600">Area context</div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{locationAnalysis.transportScore}</div>
+                <div className="text-lg font-bold text-gray-900">{locationContext.transportScore}</div>
                 <div className="text-xs text-gray-600">Transport</div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{locationAnalysis.amenities.length}</div>
+                <div className="text-lg font-bold text-gray-900">{locationContext.amenities.length}</div>
                 <div className="text-xs text-gray-600">Amenities</div>
               </div>
             </div>
+            {locationContext.explanation && (
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <div className="text-xs text-blue-700">{locationContext.explanation}</div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Property Analysis Card */}
+        {/* Space Configuration Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -332,12 +401,12 @@ export default function PropertyResults({ result, loading, error }) {
                 <ProprHomeIcon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Property Analysis</h3>
-                <p className="text-sm text-gray-600">Building assessment</p>
+                <h3 className="text-xl font-bold text-gray-900">Space Configuration</h3>
+                <p className="text-sm text-gray-600">Layout analysis</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-purple-600">{propertyAnalysis.score}</div>
+              <div className="text-4xl font-bold text-purple-600">{spaceConfiguration.score}</div>
               <div className="text-sm text-gray-600">/100</div>
             </div>
           </div>
@@ -345,40 +414,93 @@ export default function PropertyResults({ result, loading, error }) {
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Property Score</span>
-              <span>{propertyAnalysis.score}/100</span>
+              <span>Configuration Score</span>
+              <span>{spaceConfiguration.score}/100</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
                 className="bg-gradient-to-r from-purple-400 to-purple-600 h-3 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${propertyAnalysis.score}%` }}
+                style={{ width: `${spaceConfiguration.score}%` }}
               ></div>
             </div>
           </div>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{propertyAnalysis.sizeScore}</div>
-                <div className="text-xs text-gray-600">Size</div>
+            {spaceConfiguration.areaPerRoom && (
+              <div className="p-4 bg-purple-50 rounded-xl">
+                <div className="text-sm font-semibold text-purple-800 mb-1">Area per Room</div>
+                <div className="text-lg font-bold text-purple-600">{spaceConfiguration.areaPerRoom}m²</div>
+                {spaceConfiguration.spaceEfficiency && (
+                  <div className="text-xs text-purple-600 mt-1 capitalize">{spaceConfiguration.spaceEfficiency} space</div>
+                )}
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{propertyAnalysis.conditionScore}</div>
-                <div className="text-xs text-gray-600">Condition</div>
-              </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-900">{propertyAnalysis.featuresScore}</div>
-                <div className="text-xs text-gray-600">Features</div>
-              </div>
-            </div>
+            )}
             
-            <div className="p-4 bg-purple-50 rounded-xl">
-              <div className="text-sm font-semibold text-purple-800 mb-1">Area per Room</div>
-              <div className="text-lg font-bold text-purple-600">{propertyAnalysis.areaPerRoom}m²</div>
-            </div>
+            {spaceConfiguration.bathroomRatio && (
+              <div className="p-4 bg-purple-50 rounded-xl">
+                <div className="text-sm font-semibold text-purple-800 mb-1">Bathroom Ratio</div>
+                <div className="text-lg font-bold text-purple-600">{spaceConfiguration.bathroomRatio}</div>
+                {spaceConfiguration.bathroomAssessment && (
+                  <div className="text-xs text-purple-600 mt-1 capitalize">{spaceConfiguration.bathroomAssessment} ratio</div>
+                )}
+              </div>
+            )}
+            
+            {spaceConfiguration.featureCompleteness && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-xs font-semibold text-gray-700 mb-1">Features: {spaceConfiguration.featureCompleteness.total} total</div>
+                <div className="text-xs text-gray-600">
+                  {spaceConfiguration.featureCompleteness.premium > 0 && `${spaceConfiguration.featureCompleteness.premium} premium`}
+                  {spaceConfiguration.featureCompleteness.premium > 0 && spaceConfiguration.featureCompleteness.modern > 0 && ', '}
+                  {spaceConfiguration.featureCompleteness.modern > 0 && `${spaceConfiguration.featureCompleteness.modern} modern`}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Listing Quality Card */}
+      {listingQuality && (
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center">
+              <Star className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Listing Quality</h3>
+              <p className="text-sm text-gray-600">Data completeness assessment</p>
+            </div>
+            <div className="ml-auto text-right">
+              <div className="text-4xl font-bold text-indigo-600">{listingQuality.score}</div>
+              <div className="text-sm text-gray-600">/100 - {listingQuality.level}</div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {listingQuality.details.length > 0 && (
+              <div className="p-4 bg-indigo-50 rounded-xl">
+                <div className="text-sm font-semibold text-indigo-800 mb-2">Included:</div>
+                <div className="flex flex-wrap gap-2">
+                  {listingQuality.details.map((detail, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full">{detail}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {listingQuality.missing && listingQuality.missing.length > 0 && (
+              <div className="p-4 bg-amber-50 rounded-xl">
+                <div className="text-sm font-semibold text-amber-800 mb-2">Missing:</div>
+                <div className="flex flex-wrap gap-2">
+                  {listingQuality.missing.map((item, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">{item}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Premium Recommendations */}
       {recommendations.length > 0 && (

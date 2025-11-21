@@ -22,6 +22,10 @@ import detectiveRoutes from './routes/detective.js';
 import pricingRoutes from './routes/pricing.js';
 import referralRoutes from './routes/referrals.js';
 import healthRoutes from './routes/health.js';
+import dashboardRoutes from './routes/dashboard.js';
+import paymentRoutes from './routes/payments.js';
+import notificationRoutes from './routes/notifications.js';
+import creditsRoutes from './routes/credits.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -108,6 +112,10 @@ app.use('/api/geolocation', geolocationRoutes);
 app.use('/api/detective', detectiveRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/referrals', referralRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/credits', creditsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -126,9 +134,13 @@ async function initializeServices() {
     console.log('🚀 Initializing ProprScout Backend Services...');
     
     // Initialize databases
-    console.log('📊 Initializing PostgreSQL database...');
-    await initDatabase();
+    console.log('📊 Initializing PostgreSQL database (optional)...');
+    const pgPool = await initDatabase();
+    if (pgPool) {
     console.log('✅ PostgreSQL database initialized');
+    } else {
+      console.log('⚠️ PostgreSQL not available, using MongoDB only');
+    }
     
     console.log('📊 Initializing MongoDB database...');
     await connectMongoDB();

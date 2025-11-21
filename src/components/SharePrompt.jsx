@@ -48,7 +48,7 @@ const SharePrompt = ({ isOpen, onClose, userQuota, userId = 'anonymous' }) => {
   };
 
   const handleShare = (platform) => {
-    const text = "Check out ProprScout Property Detective - upload any property photo and get instant location intelligence! 🏠";
+    const text = "Check out ProprScout Photo Location Search - upload any property photo and get instant location intelligence! 🏠";
     const url = referralLink;
     
     let shareUrl = '';
@@ -63,7 +63,7 @@ const SharePrompt = ({ isOpen, onClose, userQuota, userId = 'anonymous' }) => {
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
         break;
       case 'email':
-        shareUrl = `mailto:?subject=Check out ProprScout Property Detective&body=${encodeURIComponent(text + '\n\n' + url)}`;
+        shareUrl = `mailto:?subject=Check out ProprScout Photo Location Search&body=${encodeURIComponent(text + '\n\n' + url)}`;
         break;
     }
     

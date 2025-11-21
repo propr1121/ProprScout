@@ -44,8 +44,10 @@ export async function initDatabase() {
 
     return pool;
   } catch (error) {
-    logger.error('❌ Database connection failed:', error);
-    throw error;
+    logger.warn('⚠️ PostgreSQL connection failed (optional):', error.message);
+    logger.info('📝 Using MongoDB as primary database');
+    pool = null;
+    return null;
   }
 }
 
@@ -54,7 +56,8 @@ export async function initDatabase() {
  */
 export function getPool() {
   if (!pool) {
-    throw new Error('Database not initialized. Call initDatabase() first.');
+    logger.warn('⚠️ PostgreSQL not available, using MongoDB');
+    return null;
   }
   return pool;
 }

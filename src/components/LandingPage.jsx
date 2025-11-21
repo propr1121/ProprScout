@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react'
-import { Play, Menu, X, Sparkles, ArrowRight, Users, Shield, BarChart3, MapPin, TrendingUp } from 'lucide-react'
+import { Play, Menu, X, Sparkles, ArrowRight, Users, Shield, BarChart3, MapPin, TrendingUp, User, CheckCircle, Calendar, UserPlus, ScanSearch, Navigation2, Target, ChevronLeft, ChevronRight } from 'lucide-react'
 
 function LandingPage({ onEnterApp }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [currentCaseStudy, setCurrentCaseStudy] = useState(0);
+
+  // Case studies data
+  const caseStudies = [
+    {
+      tag: "Investment Success",
+      title: "How AI Helped Identify a Profitable Investment in 20 Minutes",
+      description: "Learn how ProprScout's AI analysis helped a real estate investor identify an undervalued property and secure a 40% return on investment within 6 months."
+    },
+    {
+      tag: "Market Insights",
+      title: "Real-time Market Analysis Powers Faster Decisions",
+      description: "A property investment firm used ProprScout's market intelligence to identify emerging neighborhood trends, resulting in a 25% increase in successful acquisitions."
+    },
+    {
+      tag: "Location Intelligence",
+      title: "Precision Location Targeting Drives Portfolio Growth",
+      description: "By leveraging ProprScout's geospatial analysis, a real estate agency expanded into high-potential markets, growing their portfolio value by 35% in one year."
+    }
+  ];
 
   // Handle scroll effects and mouse tracking
   useEffect(() => {
@@ -149,8 +169,20 @@ function LandingPage({ onEnterApp }) {
           <div className="flex items-center justify-between">
             {/* Logo & Brand */}
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-primary-500 w-12 h-12 flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 1200 750" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-12 h-12 flex items-center justify-center" style={{ padding: '0px' }}>
+                <svg 
+                  width="48" 
+                  height="48" 
+                  viewBox="0 0 1200 750" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ 
+                    display: 'block',
+                    width: '48px',
+                    height: '48px',
+                    transform: 'scale(3)'
+                  }}
+                >
                   <g fill="#FFFFFF" stroke="none">
                     <path d="M669.6,407.4c0,2.6-2.1,4.8-4.8,4.8H600h-69.6v-67.6c0-1.3,0.5-2.5,1.4-3.4l64.8-64.8c1.9-1.9,4.9-1.9,6.8,0l64.8,64.8c0.9,0.9,1.4,2.1,1.4,3.4V407.4z" fill="#FFFFFF"/>
                     <path d="M600,342.6l-69.6,69.6l61.4,61.4c3,3,8.2,0.9,8.2-3.4V342.6z" fill="#FFFFFF"/>
@@ -158,10 +190,10 @@ function LandingPage({ onEnterApp }) {
                   </g>
                 </svg>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
-                <p className="text-xs text-gray-600">Intelligence</p>
-              </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
+                    <p className="text-xs text-gray-600">Real Estate Intelligence</p>
+                  </div>
             </div>
 
             {/* Desktop Navigation */}
@@ -174,9 +206,10 @@ function LandingPage({ onEnterApp }) {
               </a>
               <button 
                 onClick={onEnterApp}
-                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
               >
-                Try Demo
+                <UserPlus className="w-4 h-4" />
+                Free Sign Up
               </button>
             </nav>
 
@@ -199,11 +232,12 @@ function LandingPage({ onEnterApp }) {
                 <a href="#cases" className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200">
                   Case Studies
                 </a>
-                <button 
+                <button
                   onClick={onEnterApp}
-                  className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 w-full"
+                  className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 w-full flex items-center justify-center gap-2"
                 >
-                  Try Demo
+                  <UserPlus className="w-4 h-4" />
+                  Free Sign Up
                 </button>
               </nav>
             </div>
@@ -212,17 +246,17 @@ function LandingPage({ onEnterApp }) {
       </header>
 
       {/* Hero Section with Premium Business Elements */}
-      <section className="relative min-h-screen flex items-center justify-center py-20">
+      <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             {/* Premium badge */}
             <div className="inline-flex items-center gap-2 bg-primary-100/80 backdrop-blur-sm text-primary-700 px-6 py-3 rounded-full text-sm font-semibold mb-8 border border-primary-200/50">
-              <Sparkles className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4" />
               Trusted by 500+ Real Estate Professionals
             </div>
 
             <h1 
-              className="text-5xl sm:text-6xl font-bold text-gray-900 font-heading mb-6 leading-tight"
+              className="text-5xl sm:text-6xl font-bold text-gray-900 font-heading mb-6 leading-relaxed py-2"
               style={{
                 background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)',
                 WebkitBackgroundClip: 'text',
@@ -245,18 +279,23 @@ function LandingPage({ onEnterApp }) {
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 <div className="relative flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-                  Try Demo
+                  <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                  Free Sign Up
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </button>
               
-              <button className="group bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 text-base px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 font-semibold border border-gray-200/50">
+              <a 
+                href="https://calendly.com/johnmccoy/30min"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 text-base px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 font-semibold border border-gray-200/50 inline-flex items-center justify-center"
+              >
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Schedule Demo
+                  <Calendar className="w-4 h-4" />
+                  Book Demo
                 </div>
-              </button>
+              </a>
             </div>
 
             {/* Business metrics */}
@@ -275,21 +314,6 @@ function LandingPage({ onEnterApp }) {
               </div>
             </div>
 
-            {/* Business credibility indicators */}
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="text-xs font-semibold text-gray-700">99.9% Uptime</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
-                <Shield className="w-3 h-3 text-primary-600" />
-                <span className="text-xs font-semibold text-gray-700">SOC 2 Compliant</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
-                <Users className="w-3 h-3 text-primary-600" />
-                <span className="text-xs font-semibold text-gray-700">500+ Clients</span>
-              </div>
-            </div>
           </div>
 
           {/* Premium Demo Video Section */}
@@ -318,7 +342,7 @@ function LandingPage({ onEnterApp }) {
                   <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 border-2 border-white/30">
                     <Play className="w-10 h-10 text-white ml-1" />
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-3">Watch Enterprise Demo</h3>
+                  <h3 className="text-3xl font-bold text-white mb-3">Watch Product Demo</h3>
                   <p className="text-white/80 text-lg mb-4">See ProprScout's AI in action</p>
                   <div className="flex items-center justify-center gap-4 text-sm text-white/60">
                     <span>• Real-time Analysis</span>
@@ -358,30 +382,50 @@ function LandingPage({ onEnterApp }) {
         </div>
       </section>
 
-      {/* For Enterprise & Real Estate Professionals */}
+      {/* For Enterprise Solutions */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 font-heading mb-6">
-              For Enterprise & Real Estate Professionals
+              For Enterprise Solutions
             </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto">
-              ProprScout is an advanced platform integrating powerful AI property analysis models for your market. 
-              Delivering up to meter level accuracy, state of the art computer vision models all in an easy to use interface. 
-              Available for qualified real estate agencies and enterprise organizations.
+              Delivering up to meter level accuracy, ProprScout is an advanced platform integrating state of the art AI computer vision property analysis models in one easy to use interface.
             </p>
             <p className="text-lg text-gray-500 mt-4">
-              Licensing and pricing information available upon request.
+              Enterprise licensing and pricing information available upon request.
             </p>
-            <button className="mt-8 bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg">
-              Contact Us
-            </button>
+            <a 
+              href="https://calendly.com/johnmccoy/30min"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex items-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              <Calendar className="w-4 h-4" />
+              Book Demo
+            </a>
+            
+            {/* Business credibility indicators */}
+            <div className="flex flex-wrap justify-center gap-4 mt-12">
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <span className="text-xs font-semibold text-gray-700">99.9% Uptime</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
+                <Shield className="w-3 h-3 text-primary-600" />
+                <span className="text-xs font-semibold text-gray-700">SOC 2 Compliant</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg border border-white/30">
+                <Users className="w-3 h-3 text-primary-600" />
+                <span className="text-xs font-semibold text-gray-700">500+ Clients</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section with Premium Interactions */}
-      <section id="features" className="py-32 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      <section id="features" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div 
@@ -395,178 +439,71 @@ function LandingPage({ onEnterApp }) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 font-heading mb-6">
-              Turn property data into intelligence
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 font-heading mb-4">
+              Transforming data into property intelligence
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Advanced AI models that analyze properties with precision and speed
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Property Analysis */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-2">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <BarChart3 className="w-10 h-10 text-white" />
+            <div className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-1 flex flex-col h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  <div className="relative bg-gradient-to-br from-primary-500 via-primary-500/90 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-all duration-300 shadow-xl shadow-primary-500/25 ring-1 ring-primary-300/20 group-hover:ring-primary-400/40">
+                    <ScanSearch className="w-7 h-7 text-white drop-shadow-lg" />
+                  </div>
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 font-heading">Property Analysis</h3>
+                <h3 className="text-xl font-bold text-gray-900 font-heading">Listing Analysis</h3>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-800 mb-6">Turn property listings into market intelligence</h4>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                ProprScout's cutting edge property analysis models allow you to take any property listing and determine market value, 
-                location insights, and investment potential using only the listing data.
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Turn property listings into market intelligence</h4>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed flex-grow">
+                ProprScout's cutting edge analysis models allow you to take any property listing URL and determine market value, location insights, and investment potential using only the listing data.
               </p>
-              <button className="group/btn bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
-                <div className="flex items-center gap-2">
-                  See Demo
-                  <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                </div>
-              </button>
             </div>
 
-            {/* Location Intelligence */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-2">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <MapPin className="w-10 h-10 text-white" />
+            {/* Photo Location Search */}
+            <div className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-1 flex flex-col h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  <div className="relative bg-gradient-to-br from-primary-500 via-primary-500/90 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-all duration-300 shadow-xl shadow-primary-500/25 ring-1 ring-primary-300/20 group-hover:ring-primary-400/40">
+                    <Navigation2 className="w-7 h-7 text-white drop-shadow-lg" />
+                  </div>
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 font-heading">Location Intelligence</h3>
+                <h3 className="text-xl font-bold text-gray-900 font-heading">Photo Location Search</h3>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-800 mb-6">Precision location targeting</h4>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                Advanced geospatial analysis provides precise location data, neighborhood insights, and proximity to key amenities 
-                for comprehensive property evaluation.
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Find location from property photos</h4>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed flex-grow">
+                Upload any property photo and our AI will identify the exact location, providing precise geospatial data, neighborhood insights, and proximity to key amenities.
               </p>
-              <button className="group/btn bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
-                <div className="flex items-center gap-2">
-                  See Demo
-                  <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                </div>
-              </button>
             </div>
 
             {/* Market Insights */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-2">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <TrendingUp className="w-10 h-10 text-white" />
+            <div className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-1 flex flex-col h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  <div className="relative bg-gradient-to-br from-primary-500 via-primary-500/90 to-primary-600 p-4 rounded-2xl group-hover:scale-110 transition-all duration-300 shadow-xl shadow-primary-500/25 ring-1 ring-primary-300/20 group-hover:ring-primary-400/40">
+                    <Target className="w-7 h-7 text-white drop-shadow-lg" />
+                  </div>
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 font-heading">Market Insights</h3>
+                <h3 className="text-xl font-bold text-gray-900 font-heading">Market Insights</h3>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-800 mb-6">Property targeting</h4>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                Comprehensive market analysis including price trends, comparable properties, and investment opportunities 
-                to make informed real estate decisions.
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Property targeting</h4>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed flex-grow">
+                Comprehensive market analysis including price trends, comparable properties, and investment opportunities to make informed real estate decisions.
               </p>
-              <button className="group/btn bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
-                <div className="flex items-center gap-2">
-                  See Demo
-                  <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                </div>
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div 
-            className="absolute top-10 right-10 w-64 h-64 bg-primary-100/20 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: '0s' }}
-          />
-          <div 
-            className="absolute bottom-10 left-10 w-80 h-80 bg-primary-200/15 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: '2s' }}
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 font-heading mb-6">
-              Trusted by Real Estate Professionals
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              See what industry leaders are saying about ProprScout
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  SM
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Sarah Mitchell</h4>
-                  <p className="text-sm text-gray-600">Senior Real Estate Agent</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic mb-4">
-                "ProprScout has revolutionized how I analyze properties. The AI insights help me provide clients with data-driven recommendations that consistently outperform market expectations."
-              </p>
-              <div className="flex text-primary-500">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  MJ
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Michael Johnson</h4>
-                  <p className="text-sm text-gray-600">Property Investment Advisor</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic mb-4">
-                "The accuracy of ProprScout's market analysis is unmatched. I've identified three undervalued properties that generated 40%+ returns within 6 months using their insights."
-              </p>
-              <div className="flex text-primary-500">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  EL
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Emily Liu</h4>
-                  <p className="text-sm text-gray-600">Real Estate Broker</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic mb-4">
-                "ProprScout's location intelligence features have helped me understand neighborhood dynamics like never before. My clients trust my recommendations more than ever."
-              </p>
-              <div className="flex text-primary-500">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Testimonials Section - REMOVED FOR DEMO - Saved in LandingPage_Testimonials_Backup.jsx */}
 
       {/* Who we are */}
       <section className="py-20 bg-white">
@@ -591,21 +528,53 @@ function LandingPage({ onEnterApp }) {
       {/* Case Study */}
       <section id="cases" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <div className="text-center">
+          <div className="bg-white rounded-2xl p-8 shadow-lg relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={() => setCurrentCaseStudy((prev) => (prev === 0 ? caseStudies.length - 1 : prev - 1))}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-gray-200 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group"
+              aria-label="Previous insight"
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-600 group-hover:text-primary-600 transition-colors" />
+            </button>
+            <button
+              onClick={() => setCurrentCaseStudy((prev) => (prev === caseStudies.length - 1 ? 0 : prev + 1))}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-gray-200 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group"
+              aria-label="Next insight"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-primary-600 transition-colors" />
+            </button>
+
+            {/* Case Study Content */}
+            <div className="text-center px-12">
               <div className="bg-primary-100 text-primary-800 px-4 py-2 rounded-full text-sm font-medium mb-6 inline-block">
-                "Investment Success"
+                {caseStudies[currentCaseStudy].tag}
               </div>
               <h3 className="text-3xl font-bold text-gray-900 font-heading mb-6">
-                How AI Helped Identify a Profitable Investment in 20 Minutes
+                {caseStudies[currentCaseStudy].title}
               </h3>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Learn how ProprScout's AI analysis helped a real estate investor identify an undervalued property 
-                and secure a 40% return on investment within 6 months.
+                {caseStudies[currentCaseStudy].description}
               </p>
               <button className="mt-8 text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
                 Learn More →
               </button>
+            </div>
+
+            {/* Dot Indicators */}
+            <div className="flex justify-center gap-2 mt-8">
+              {caseStudies.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentCaseStudy(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentCaseStudy 
+                      ? 'bg-primary-600 w-8' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to insight ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -616,10 +585,10 @@ function LandingPage({ onEnterApp }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 font-heading mb-6">
-              Explore the blog
+              Explore our blog
             </h2>
             <p className="text-xl text-gray-600">
-              Hear the latest from the ProprScout team
+              Hear the latest from the ProprScout community
             </p>
             <button className="mt-4 text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
               Check our blog →
@@ -627,41 +596,41 @@ function LandingPage({ onEnterApp }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
+            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
               <div className="text-sm text-gray-500 mb-2">August 20, 2024</div>
               <h3 className="text-xl font-bold text-gray-900 font-heading mb-3">
                 Why Real Estate Professionals Deserve the Most Advanced AI
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-4 flex-grow">
                 Discover how AI is revolutionizing property analysis and market intelligence for real estate professionals.
               </p>
-              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
+              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200 mt-auto">
                 Read more →
               </button>
             </article>
 
-            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
+            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
               <div className="text-sm text-gray-500 mb-2">August 1, 2024</div>
               <h3 className="text-xl font-bold text-gray-900 font-heading mb-3">
                 Finding Profitable Investments in 20 Minutes: How AI Changes the Game for Real Estate
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-4 flex-grow">
                 Learn how AI-powered property analysis is transforming investment decision-making in real estate.
               </p>
-              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
+              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200 mt-auto">
                 Read more →
               </button>
             </article>
 
-            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
+            <article className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
               <div className="text-sm text-gray-500 mb-2">April 14, 2024</div>
               <h3 className="text-xl font-bold text-gray-900 font-heading mb-3">
                 Getting Started with ProprScout
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-4 flex-grow">
                 ProprScout 1.1 Update - New features and improvements for property analysis.
               </p>
-              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
+              <button className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200 mt-auto">
                 Watch Recap →
               </button>
             </article>
@@ -670,12 +639,27 @@ function LandingPage({ onEnterApp }) {
       </section>
 
       {/* Turn property data into intelligence - Premium CTA */}
-      <section className="relative py-32 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white overflow-hidden">
+      <section 
+        className="relative py-32 text-white overflow-hidden"
+        style={{
+          backgroundImage: 'url(/green-houses-isometric.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          imageRendering: 'auto',
+          WebkitImageRendering: '-webkit-optimize-quality'
+        }}
+      >
+        {/* Light frosting overlay for text readability and to hide image fidelity issues */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/70 via-primary-500/65 to-primary-600/70"></div>
+        
         {/* Animated background elements */}
         <div className="absolute inset-0">
           <div 
-            className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary-400/20 to-primary-800/20"
+            className="absolute -inset-16 pointer-events-none"
             style={{
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.15) 100%)',
               transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
               transition: 'transform 0.1s ease-out'
             }}
@@ -691,20 +675,27 @@ function LandingPage({ onEnterApp }) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-6xl font-bold font-heading mb-8 leading-tight">
-            Turn property data into intelligence.
+          <h2 className="text-4xl font-bold font-heading mb-6 leading-tight">
+            Transforming data into property intelligence.
           </h2>
-          <p className="text-2xl mb-12 max-w-5xl mx-auto leading-relaxed">
-            <strong>ProprScout has enabled real estate professionals and investors to act swiftly, determining property values and market opportunities within seconds. By acting on real-time, comprehensive data, professionals have been able to identify profitable investments faster than ever before.</strong>
+          <p className="text-lg mb-8 max-w-4xl mx-auto leading-relaxed">
+            <strong>ProprScout enables real estate professionals and investors to act swiftly, determining property values and market opportunities within seconds.</strong>
           </p>
           <button 
             onClick={onEnterApp}
-            className="group bg-white text-primary-600 hover:bg-gray-100 text-2xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-3xl transform hover:scale-[1.05] transition-all duration-300 font-bold"
+            className="group relative bg-white text-primary-600 hover:bg-gray-100 text-base px-8 py-3 rounded-lg shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 font-semibold overflow-hidden"
+            style={{
+              backgroundImage: 'url(/clip-path-group.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
           >
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
+            <div className="relative flex items-center gap-2">
+              <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
               Try ProprScout
-              <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform duration-300" />
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
             </div>
           </button>
         </div>
@@ -716,8 +707,20 @@ function LandingPage({ onEnterApp }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="rounded-lg bg-primary-500 w-10 h-10 flex items-center justify-center">
-                  <svg width="32" height="32" viewBox="0 0 1200 750" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-10 h-10 flex items-center justify-center" style={{ padding: '0px' }}>
+                      <svg
+                        width="36"
+                        height="36"
+                        viewBox="0 0 1200 750"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          display: 'block',
+                          width: '36px',
+                          height: '36px',
+                          transform: 'scale(3)'
+                        }}
+                      >
                     <g fill="#FFFFFF" stroke="none">
                       <path d="M669.6,407.4c0,2.6-2.1,4.8-4.8,4.8H600h-69.6v-67.6c0-1.3,0.5-2.5,1.4-3.4l64.8-64.8c1.9-1.9,4.9-1.9,6.8,0l64.8,64.8c0.9,0.9,1.4,2.1,1.4,3.4V407.4z" fill="#FFFFFF"/>
                       <path d="M600,342.6l-69.6,69.6l61.4,61.4c3,3,8.2,0.9,8.2-3.4V342.6z" fill="#FFFFFF"/>
@@ -750,17 +753,17 @@ function LandingPage({ onEnterApp }) {
                   placeholder="Enter your email" 
                   className="flex-1 px-4 py-2 rounded-l-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-r-lg transition-colors duration-200">
+                <button className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 py-2 rounded-r-lg transition-all duration-200">
                   Subscribe
                 </button>
               </div>
             </div>
-
-            <div>
-              <p className="text-gray-400 text-sm">
-                <strong>Copyright © 2024 ProprScout Intelligence</strong>
-              </p>
-            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-gray-800">
+            <p className="text-gray-500 text-xs text-center">
+              Copyright © 2024 ProprScout Intelligence a ProprHome © product.
+            </p>
           </div>
         </div>
       </footer>

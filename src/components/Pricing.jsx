@@ -19,9 +19,9 @@ const Pricing = ({ className = '' }) => {
   const fetchPricingData = async () => {
     try {
       const [plansRes, featuresRes, statusRes] = await Promise.all([
-        fetch('http://localhost:3002/api/pricing/plans'),
-        fetch('http://localhost:3002/api/pricing/features'),
-        fetch('http://localhost:3002/api/pricing/user-status?user_id=anonymous')
+        fetch('http://localhost:6000/api/pricing/plans'),
+        fetch('http://localhost:6000/api/pricing/features'),
+        fetch('http://localhost:6000/api/pricing/user-status?user_id=anonymous')
       ]);
 
       const [plansData, featuresData, statusData] = await Promise.all([

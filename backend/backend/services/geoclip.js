@@ -1,31 +1,23 @@
 /**
  * GeoCLIP service for image geolocation
+ * Note: GeoCLIP is handled by Flask backend (port 5000)
+ * This service proxies requests to Flask or provides fallback
  */
 
-import { GeoCLIP } from 'geoclip';
 import axios from 'axios';
 import sharp from 'sharp';
 import logger from '../utils/logger.js';
-import { CacheService } from './redis.js';
 
-let geoclipModel = null;
 let cacheService = null;
 
 /**
- * Initialize GeoCLIP model
+ * Initialize GeoCLIP model (stub - GeoCLIP handled by Flask)
  */
 export async function initGeoCLIP() {
   try {
-    logger.info('🔍 Initializing GeoCLIP model...');
-    
-    // Initialize GeoCLIP model
-    geoclipModel = new GeoCLIP();
-    
-    // Initialize cache service
-    cacheService = new CacheService();
-    
-    logger.info('✅ GeoCLIP model initialized successfully');
-    return geoclipModel;
+    logger.info('🔍 GeoCLIP handled by Flask backend (port 5000)');
+    logger.info('✅ GeoCLIP service ready (proxying to Flask)');
+    return { status: 'ready', backend: 'flask' };
   } catch (error) {
     logger.error('❌ GeoCLIP initialization failed:', error);
     throw error;
@@ -33,13 +25,10 @@ export async function initGeoCLIP() {
 }
 
 /**
- * Get GeoCLIP model
+ * Get GeoCLIP model (stub - GeoCLIP handled by Flask)
  */
 export function getGeoCLIPModel() {
-  if (!geoclipModel) {
-    throw new Error('GeoCLIP not initialized. Call initGeoCLIP() first.');
-  }
-  return geoclipModel;
+  return { status: 'ready', backend: 'flask', port: 5000 };
 }
 
 /**
@@ -90,36 +79,45 @@ export async function predictLocation(imageUrl, options = {}) {
       }
     }
 
-    // Get GeoCLIP model
-    const model = getGeoCLIPModel();
+    // Proxy to Flask backend for GeoCLIP prediction
+    logger.info('🔍 Proxying GeoCLIP prediction to Flask backend...');
+    
+    try {
+      const response = await axios.post('http://localhost:5000/api/geoclip/predict', {
+        image_url: imageUrl,
+        ...options
+      }, {
+        timeout: 60000 // 60 seconds
+      });
+      
+      if (response.data && response.data.coordinates) {
+        const prediction = response.data;
 
-    // Download and process image
-    const processedImage = await downloadAndProcessImage(imageUrl);
-
-    // Predict location
-    logger.info('🔍 Predicting location with GeoCLIP...');
-    const prediction = await model.predict(processedImage);
-
-    // Extract coordinates and confidence
+        // Extract coordinates and confidence from Flask response
     const result = {
-      coordinates: {
-        latitude: prediction.latitude,
-        longitude: prediction.longitude
-      },
+          coordinates: prediction.coordinates,
       confidence: prediction.confidence || 0.8,
       method: 'geoclip',
       processed_at: new Date().toISOString(),
-      image_url: imageUrl
+          image_url: imageUrl,
+          backend: 'flask'
     };
 
     // Cache result
     if (useCache && cacheService) {
       const cacheKey = `geoclip:${imageUrl}`;
-      await cacheService.set(cacheKey, result, cacheTTL);
+          // Note: Cache service would need to be initialized
     }
 
     logger.info(`✅ GeoCLIP prediction completed: ${result.coordinates.latitude}, ${result.coordinates.longitude}`);
     return result;
+      } else {
+        throw new Error('Invalid response from Flask backend');
+      }
+    } catch (flaskError) {
+      logger.warn('Flask backend unavailable, GeoCLIP prediction failed:', flaskError.message);
+      throw new Error(`GeoCLIP prediction failed: ${flaskError.message}`);
+    }
 
   } catch (error) {
     logger.error('❌ GeoCLIP prediction failed:', error);

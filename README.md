@@ -45,6 +45,7 @@ A React-based web application for deep property analysis from any listing URL in
 ProprScout-main/
 ├── src/
 │   ├── components/
+│   │   ├── LandingPage.jsx           # Main landing page component
 │   │   ├── PropertyInput.jsx          # URL input component
 │   │   ├── PropertyResults.jsx       # Analysis results display
 │   │   ├── PropertyDetective.jsx     # Photo upload & analysis
@@ -60,7 +61,7 @@ ProprScout-main/
 │   │   │   └── propertyScraper.js    # Web scraping
 │   │   └── analysis/
 │   │       └── propertyAnalyzer.js   # Analysis algorithms
-│   ├── App.jsx                       # Main application
+│   ├── App.jsx                       # Main application & dashboard
 │   └── main.jsx                      # Entry point
 ├── backend/
 │   ├── app.py                        # Flask application
@@ -126,7 +127,7 @@ The GeoCLIP model is automatically downloaded on first run. Ensure you have suff
 
 ## 📊 API Endpoints
 
-### Frontend (Port 3000)
+### Frontend (Port 4000)
 - `/` - Main application
 - `/detective` - Property Detective feature
 
@@ -172,9 +173,18 @@ The GeoCLIP model is automatically downloaded on first run. Ensure you have suff
 
 ## 🚀 Deployment
 
-### Railway/Render
+### Frontend Deployment (Vercel)
+See [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md) for complete Vercel deployment instructions.
+
+**Quick Start**:
+1. Push code to GitHub
+2. Connect to Vercel
+3. Add environment variables
+4. Deploy automatically
+
+### Backend Deployment (Railway/Render)
 1. Connect your GitHub repository
-2. Set environment variables
+2. Set environment variables (see `backend/backend/env.example`)
 3. Deploy automatically on push
 
 ### Docker (Optional)
@@ -200,8 +210,9 @@ docker-compose up -d
 ### Common Issues
 1. **Mapbox not loading**: Check `VITE_MAPBOX_ACCESS_TOKEN`
 2. **Backend connection failed**: Verify port 3002 is available
-3. **GeoCLIP errors**: Ensure sufficient disk space and memory
-4. **CORS issues**: Check backend CORS configuration
+3. **Frontend port conflict**: Frontend runs on port 4000 (configurable in vite.config.js)
+4. **GeoCLIP errors**: Ensure sufficient disk space and memory
+5. **CORS issues**: Check backend CORS configuration
 
 ### Debug Mode
 ```bash
@@ -219,7 +230,9 @@ FLASK_DEBUG=1 python app.py
 - ✅ **GeoCLIP Integration**: AI-powered image geolocation
 - ✅ **Error Handling**: No mock data, real analysis only
 - ✅ **UI/UX**: Premium design system implementation
-- ✅ **Logo**: Simple house icon in green square
+- ✅ **Logo**: Simple house icon in green square with gradient background
+- ✅ **Landing Page**: Complete redesign with premium animations, gradient buttons, case study carousel, and consistent branding
+- ✅ **Dashboard Redesign**: Unified design system matching landing page, consolidated sections, intelligent upgrade flow, expandable analysis history, floating action button
 
 ### Code Quality
 - **ESLint**: Code linting enabled
