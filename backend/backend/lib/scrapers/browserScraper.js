@@ -1,7 +1,20 @@
 /**
  * Browser-compatible scraper for client-side use
  * This version works in the browser without Node.js dependencies
+ * When running in Node.js, uses jsdom for HTML parsing
  */
+
+// Import jsdom for Node.js environment
+let JSDOM;
+const isNode = typeof window === 'undefined';
+if (isNode) {
+  try {
+    const jsdom = await import('jsdom');
+    JSDOM = jsdom.JSDOM;
+  } catch (e) {
+    console.warn('jsdom not available, HTML parsing may fail in Node.js environment');
+  }
+}
 
 /**
  * Scrape property data using browser-compatible methods
@@ -83,12 +96,11 @@ export async function scrapeProperty(url) {
       throw new Error('No property data could be extracted from the page. The website structure may have changed.');
     }
 
-    // Check if we got generic/fallback data (indicates demo URLs)
-    if (propertyData.title.includes('Casas e apartamentos para comprar') || 
+    // Check if we got generic/fallback data (indicates search page, not property listing)
+    if (propertyData.title.includes('Casas e apartamentos para comprar') ||
         propertyData.title.includes('Todo o país') ||
         propertyData.price === null) {
-      console.log('🎭 Demo URL detected - providing realistic demo data');
-      return getDemoPropertyData(url);
+      throw new Error('This appears to be a search results page, not a property listing. Please use a direct link to a specific property.');
     }
 
     console.log(`✅ Successfully scraped property data:`, propertyData);
@@ -101,74 +113,21 @@ export async function scrapeProperty(url) {
 }
 
 /**
- * Get realistic demo property data for example URLs
- */
-function getDemoPropertyData(url) {
-  const demoProperties = [
-    {
-      title: "Apartamento T3 com Vista Mar - Cascais",
-      price: 450000,
-      location: "Cascais, Lisboa",
-      area: 120,
-      bedrooms: 3,
-      bathrooms: 2,
-      images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"],
-      description: "Apartamento moderno com vista para o mar, localizado no centro histórico de Cascais. Próximo de transportes públicos e comércio.",
-      features: ["Vista Mar", "Elevador", "Estacionamento", "Terraço", "Ar Condicionado"],
-      coordinates: { lat: 38.6979, lng: -9.4205 }
-    },
-    {
-      title: "Casa T4 com Jardim - Porto",
-      price: 320000,
-      location: "Cedofeita, Porto",
-      area: 180,
-      bedrooms: 4,
-      bathrooms: 3,
-      images: ["https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800"],
-      description: "Casa de família com jardim privado, localizada no bairro histórico de Cedofeita. Ideal para famílias.",
-      features: ["Jardim", "Garagem", "Aquecimento Central", "Segurança", "WiFi"],
-      coordinates: { lat: 41.1579, lng: -8.6291 }
-    },
-    {
-      title: "Loft T2 Renovado - Lisboa",
-      price: 280000,
-      location: "Bairro Alto, Lisboa",
-      area: 85,
-      bedrooms: 2,
-      bathrooms: 1,
-      images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800"],
-      description: "Loft moderno totalmente renovado no coração do Bairro Alto. Excelente localização para jovens profissionais.",
-      features: ["Renovado", "Mobiliado", "Elevador", "Segurança", "WiFi"],
-      coordinates: { lat: 38.7223, lng: -9.1393 }
-    }
-  ];
-
-  // Select demo property based on URL
-  let selectedProperty;
-  if (url.includes('idealista')) {
-    selectedProperty = demoProperties[0]; // Cascais apartment
-  } else if (url.includes('imovirtual')) {
-    selectedProperty = demoProperties[1]; // Porto house
-  } else {
-    selectedProperty = demoProperties[2]; // Lisboa loft
-  }
-
-  return {
-    ...selectedProperty,
-    scrapedAt: new Date().toISOString(),
-    site: url.includes('idealista') ? 'idealista' : url.includes('imovirtual') ? 'imovirtual' : 'supercasa',
-    propertyId: 'demo-' + Math.random().toString(36).substr(2, 9),
-    isDemo: true
-  };
-}
-
-/**
  * Extract property data from HTML
  * Exported for use by other scrapers (e.g., Firecrawl)
  */
 export function extractPropertyData(html, url) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+  // Use jsdom in Node.js, DOMParser in browser
+  let doc;
+  if (isNode && JSDOM) {
+    const dom = new JSDOM(html);
+    doc = dom.window.document;
+  } else if (typeof DOMParser !== 'undefined') {
+    const parser = new DOMParser();
+    doc = parser.parseFromString(html, 'text/html');
+  } else {
+    throw new Error('No HTML parser available. Install jsdom for Node.js support.');
+  }
   
   const site = detectSite(url);
   const selectors = getSiteSelectors(site);
@@ -214,6 +173,7 @@ function detectSite(url) {
   if (url.includes('imovirtual.com')) return 'imovirtual';
   if (url.includes('supercasa.pt')) return 'supercasa';
   if (url.includes('olx.pt')) return 'olx';
+  if (url.includes('casa.sapo.pt')) return 'casasapo';
   return 'unknown';
 }
 
@@ -268,6 +228,18 @@ function getSiteSelectors(site) {
       images: ['[data-testid="gallery-image"]', '.property-gallery img'],
       description: ['meta[property="og:description"]', '[data-testid="description"]'],
       features: ['.property-features span', '.info-features span'],
+      coordinates: ['script[type="application/ld+json"]', 'iframe[src*="google.com/maps"]']
+    },
+    casasapo: {
+      title: ['h1.property-title', 'meta[property="og:title"]', 'h1', '.listing-title'],
+      price: ['.property-price', '.price-value', '[class*="price"]', '.value'],
+      location: ['.property-location', '.address', '.location', '[class*="location"]'],
+      area: ['.property-area', '[class*="area"]', '[class*="m2"]', '.area-value'],
+      bedrooms: ['.property-bedrooms', '[class*="bedroom"]', '[class*="quarto"]'],
+      bathrooms: ['.property-bathrooms', '[class*="bathroom"]', '[class*="wc"]'],
+      images: ['.gallery img', '.property-images img', 'img[src*="property"]'],
+      description: ['meta[property="og:description"]', '.property-description', '.description'],
+      features: ['.property-features li', '.features span', '.amenities li'],
       coordinates: ['script[type="application/ld+json"]', 'iframe[src*="google.com/maps"]']
     }
   };

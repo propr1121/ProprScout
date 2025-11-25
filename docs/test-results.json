@@ -1,0 +1,12 @@
+[
+  {
+    "portal": "Supercasa",
+    "url": "https://supercasa.pt/comprar-apartamentos/queluz/apartamento-t2,1cced3a7-dd9e-11ef-ad04-0617e11787f4",
+    "success": false,
+    "scrapeTime": null,
+    "error": "All scraping methods failed. Please try again or check the URL.",
+    "dataExtracted": null,
+    "scores": null,
+    "testedAt": "2025-11-25T19:36:07.393Z"
+  }
+]

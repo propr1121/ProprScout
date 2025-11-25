@@ -20,7 +20,15 @@ export function parsePropertyUrl(url) {
       /imovirtual\.com\/.*\/([^\/]+)$/           // General format
     ],
     olx: /olx\.pt\/.*-ID([a-z0-9]+)\.html/,
-    supercasa: /supercasa\.pt\/.*\/(\d+)$/
+    supercasa: [
+      /supercasa\.pt\/.*,([a-f0-9-]{36})$/,       // UUID format
+      /supercasa\.pt\/.*\/(\d+)$/,                // Numeric ID format
+      /supercasa\.pt\/comprar-[^\/]+\/[^\/]+\/([^\/,]+)/  // General format
+    ],
+    casasapo: [
+      /casa\.sapo\.pt\/.*-([a-f0-9-]+)$/,         // UUID format
+      /casa\.sapo\.pt\/.*\/([^\/]+)$/             // General format
+    ]
   };
   
   for (const [site, sitePatterns] of Object.entries(patterns)) {
@@ -38,7 +46,7 @@ export function parsePropertyUrl(url) {
     }
   }
   
-  throw new Error('Unsupported property website. Please use Idealista, Imovirtual, OLX, or Supercasa.');
+  throw new Error('Unsupported property website. Please use Idealista, Imovirtual, OLX, Supercasa, or Casa Sapo.');
 }
 
 /**
@@ -60,5 +68,5 @@ export function isSupportedUrl(url) {
  * @returns {Array} - Array of supported site names
  */
 export function getSupportedSites() {
-  return ['idealista', 'imovirtual', 'olx', 'supercasa'];
+  return ['idealista', 'imovirtual', 'olx', 'supercasa', 'casasapo'];
 }
