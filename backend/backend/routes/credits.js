@@ -15,43 +15,27 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { user_id = 'anonymous' } = req.query;
-    
-    // For anonymous users, create a temporary user record
+
+    // For anonymous users, return default credits (no database lookup needed)
     if (user_id === 'anonymous') {
-      let user = await User.findById(user_id);
-      if (!user) {
-        user = new User({
-          _id: user_id,
-          email: `${user_id}@anonymous.local`,
-          name: 'Anonymous User',
-          credits: {
-            balance: 15,
-            total_earned: 15,
-            total_spent: 0
-          }
-        });
-        await user.save();
-      }
-      
-      // Check and recharge credits
-      const wasRecharged = user.checkAndRechargeCredits();
-      if (wasRecharged) {
-        await user.save();
-      }
-      
-      const nextRechargeDate = user.getNextRechargeDate();
-      
+      // Return default anonymous user credits
+      const nextRechargeDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
       res.json({
         success: true,
         data: {
-          balance: user.credits.balance,
-          totalEarned: user.credits.total_earned,
-          totalSpent: user.credits.total_spent,
+          balance: 15,
+          totalEarned: 15,
+          totalSpent: 0,
           nextRechargeDate: nextRechargeDate.toISOString(),
-          lastRechargeDate: user.credits.last_recharge_date?.toISOString() || null
+          lastRechargeDate: null
         }
       });
-    } else {
+      return;
+    }
+
+    // For authenticated users, look up from database
+    {
       const user = await User.findById(user_id);
       if (!user) {
         return res.json({

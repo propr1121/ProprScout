@@ -231,7 +231,27 @@ router.get('/features', async (req, res) => {
 router.get('/user-status', async (req, res) => {
   try {
     const { user_id = 'anonymous' } = req.query;
-    
+
+    // For anonymous users, return default free tier status
+    if (user_id === 'anonymous') {
+      return res.json({
+        success: true,
+        data: {
+          subscription: 'free',
+          plan: null,
+          quota: {
+            used: 0,
+            limit: 3,
+            remaining: 3
+          },
+          features: {
+            analyses_per_month: 3,
+            analysis_history_limit: 10
+          }
+        }
+      });
+    }
+
     const user = await User.findById(user_id);
     if (!user) {
       return res.json({

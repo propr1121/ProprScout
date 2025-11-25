@@ -4,7 +4,7 @@
 
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { query } from '../database/init.js';
+import { query, getPool } from '../database/init.js';
 import { scrapeProperty } from '../lib/scrapers/propertyScraper.js';
 import { analyzeProperty } from '../lib/analysis/propertyAnalyzer.js';
 import { analyzeListingWithAI, isConfigured as isAIConfigured } from '../services/anthropic.js';
@@ -250,15 +250,35 @@ router.get('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      site = null, 
-      min_price = null, 
+    const {
+      page = 1,
+      limit = 20,
+      site = null,
+      min_price = null,
       max_price = null,
       min_area = null,
       max_area = null
     } = req.query;
+
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      // Return empty list when PostgreSQL is not available
+      return res.json({
+        success: true,
+        data: {
+          properties: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          }
+        },
+        message: 'Property history requires PostgreSQL database'
+      });
+    }
 
     const offset = (page - 1) * limit;
     let whereClause = 'WHERE 1=1';
@@ -301,12 +321,12 @@ router.get('/', async (req, res) => {
     params.push(offset);
 
     const result = await query(`
-      SELECT 
+      SELECT
         id, url, site, property_id, title, description, price, area,
-        rooms, bathrooms, location, 
+        rooms, bathrooms, location,
         coordinates[0] as longitude, coordinates[1] as latitude,
         features, images, created_at
-      FROM properties 
+      FROM properties
       ${whereClause}
       ORDER BY created_at DESC
       LIMIT $${paramCount - 1} OFFSET $${paramCount}
@@ -314,8 +334,8 @@ router.get('/', async (req, res) => {
 
     // Get total count
     const countResult = await query(`
-      SELECT COUNT(*) as total 
-      FROM properties 
+      SELECT COUNT(*) as total
+      FROM properties
       ${whereClause}
     `, params.slice(0, -2));
 

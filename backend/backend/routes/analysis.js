@@ -4,7 +4,7 @@
 
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { query } from '../database/init.js';
+import { query, getPool } from '../database/init.js';
 import { analyzeProperty } from '../lib/analysis/propertyAnalyzer.js';
 import { analyzeListingWithAI, isConfigured as isAIConfigured } from '../services/anthropic.js';
 import logger from '../utils/logger.js';
@@ -129,8 +129,16 @@ router.get('/:property_id', async (req, res) => {
   try {
     const { property_id } = req.params;
 
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      return res.status(404).json({
+        error: 'Analysis not found',
+        message: 'Analysis history requires PostgreSQL database'
+      });
+    }
+
     const result = await query(`
-      SELECT 
+      SELECT
         ar.*,
         p.title, p.url, p.site, p.price, p.area, p.location
       FROM analysis_results ar
@@ -147,7 +155,7 @@ router.get('/:property_id', async (req, res) => {
     }
 
     const analysis = result.rows[0];
-    
+
     // Parse JSON fields
     analysis.price_analysis = JSON.parse(analysis.price_analysis);
     analysis.location_analysis = JSON.parse(analysis.location_analysis);
@@ -174,13 +182,32 @@ router.get('/:property_id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      min_score = null, 
+    const {
+      page = 1,
+      limit = 20,
+      min_score = null,
       max_score = null,
       site = null
     } = req.query;
+
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      return res.json({
+        success: true,
+        data: {
+          analyses: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          }
+        },
+        message: 'Analysis history requires PostgreSQL database'
+      });
+    }
 
     const offset = (page - 1) * limit;
     let whereClause = 'WHERE 1=1';
@@ -211,7 +238,7 @@ router.get('/', async (req, res) => {
     params.push(offset);
 
     const result = await query(`
-      SELECT 
+      SELECT
         ar.id, ar.property_id, ar.overall_score, ar.created_at,
         p.title, p.url, p.site, p.price, p.area, p.location
       FROM analysis_results ar
@@ -223,7 +250,7 @@ router.get('/', async (req, res) => {
 
     // Get total count
     const countResult = await query(`
-      SELECT COUNT(*) as total 
+      SELECT COUNT(*) as total
       FROM analysis_results ar
       JOIN properties p ON ar.property_id = p.id
       ${whereClause}

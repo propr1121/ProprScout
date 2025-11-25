@@ -67,6 +67,9 @@ export function getPool() {
  */
 export async function query(text, params = []) {
   const pool = getPool();
+  if (!pool) {
+    throw new Error('PostgreSQL not available. Use MongoDB instead.');
+  }
   try {
     const result = await pool.query(text, params);
     return result;

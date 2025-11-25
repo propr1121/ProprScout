@@ -17,7 +17,20 @@ const router = express.Router();
 router.get('/stats', async (req, res) => {
   try {
     const { user_id = 'anonymous' } = req.query;
-    
+
+    // For anonymous users, return default stats
+    if (user_id === 'anonymous') {
+      return res.json({
+        success: true,
+        data: {
+          referralCount: 0,
+          bonusAnalyses: 0,
+          progressToPro: 0,
+          referralsRemaining: 5
+        }
+      });
+    }
+
     // Get user's referral count
     const user = await User.findById(user_id);
     if (!user) {
