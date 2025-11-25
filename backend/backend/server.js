@@ -13,6 +13,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import passport from 'passport';
 
 // Import routes
 import propertyRoutes from './routes/property.js';
@@ -26,10 +27,16 @@ import dashboardRoutes from './routes/dashboard.js';
 import paymentRoutes from './routes/payments.js';
 import notificationRoutes from './routes/notifications.js';
 import creditsRoutes from './routes/credits.js';
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
+import inviteRoutes from './routes/invite.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
+
+// Import passport config
+import { configurePassport } from './config/passport.js';
 
 // Import database
 import { initDatabase } from './database/init.js';
@@ -91,6 +98,10 @@ app.use(compression());
 app.use(morgan('combined'));
 app.use(requestLogger);
 
+// Initialize Passport
+configurePassport();
+app.use(passport.initialize());
+
 // Static files
 app.use('/uploads', express.static(join(__dirname, 'uploads')));
 
@@ -105,6 +116,9 @@ app.get('/', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/invite', inviteRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/analysis', analysisRoutes);

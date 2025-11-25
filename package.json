@@ -44,6 +44,7 @@
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",
     "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.9.6",
     "user-agents": "^1.1.669",
     "vite": "^7.1.11"
   },

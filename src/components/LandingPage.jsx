@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Play, Menu, X, Sparkles, ArrowRight, Users, Shield, BarChart3, MapPin, TrendingUp, User, CheckCircle, Calendar, UserPlus, ScanSearch, Navigation2, Target, ChevronLeft, ChevronRight } from 'lucide-react'
 
-function LandingPage({ onEnterApp }) {
+function LandingPage({ onEnterApp, onLogin, onSignup }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -204,8 +204,14 @@ function LandingPage({ onEnterApp }) {
               <a href="#cases" className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200">
                 Case Studies
               </a>
-              <button 
-                onClick={onEnterApp}
+              <button
+                onClick={onLogin || onEnterApp}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={onSignup || onEnterApp}
                 className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />

@@ -1,8 +1,10 @@
 /**
  * MongoDB model for Users with Property Detective features
+ * Includes authentication, SSO, and invite code support
  */
 
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -14,6 +16,64 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
+  },
+  // Authentication fields
+  password: {
+    type: String,
+    required: function() {
+      // Password required only for local auth (not SSO)
+      return this.authProvider === 'local';
+    },
+    select: false // Don't return password by default
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google', 'linkedin'],
+    default: 'local'
+  },
+  providerId: {
+    type: String, // Google/LinkedIn user ID
+    default: null
+  },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  // Invite code tracking
+  inviteCode: {
+    type: String,
+    default: null
+  },
+  invitedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  // Company/Organization info
+  company: {
+    type: String,
+    default: null
+  },
+  location: {
+    type: String,
+    default: null
+  },
+  // Session tracking
+  lastLoginAt: {
+    type: Date,
+    default: null
+  },
+  lastLoginIp: {
+    type: String,
+    default: null
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   },
   subscription: {
     type: {
@@ -216,6 +276,41 @@ userSchema.methods.getNextRechargeDate = function() {
     nextRecharge.setMonth(nextRecharge.getMonth() + 1);
     return nextRecharge;
   }
+};
+
+// Pre-save middleware to hash password
+userSchema.pre('save', async function(next) {
+  // Only hash password if it's modified (or new)
+  if (!this.isModified('password')) return next();
+
+  // Don't hash if it's an SSO user
+  if (this.authProvider !== 'local') return next();
+
+  try {
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Method to compare passwords
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  if (!this.password) return false;
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to update last login
+userSchema.methods.updateLastLogin = function(ip = null) {
+  this.lastLoginAt = new Date();
+  if (ip) this.lastLoginIp = ip;
+  return this.save();
+};
+
+// Static method to find by email with password
+userSchema.statics.findByEmailWithPassword = function(email) {
+  return this.findOne({ email: email.toLowerCase() }).select('+password');
 };
 
 export default mongoose.model('User', userSchema);

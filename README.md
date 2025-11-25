@@ -147,6 +147,24 @@ The GeoCLIP model is automatically downloaded on first run. Ensure you have suff
 - `GET /api/detective/quota` - Get user quota
 - `GET /api/detective/history` - Get analysis history
 
+### Authentication Endpoints
+- `POST /api/auth/register` - Register new user (requires invite code)
+- `POST /api/auth/login` - Login with email/password
+- `GET /api/auth/google` - Google OAuth login
+- `GET /api/auth/linkedin` - LinkedIn OAuth login
+- `GET /api/auth/me` - Get current user profile
+- `POST /api/auth/logout` - Logout user
+- `POST /api/invite/validate` - Validate invite code
+
+### Admin Endpoints (requires admin role)
+- `GET /api/admin/stats` - Platform statistics
+- `GET /api/admin/users` - List all users
+- `PUT /api/admin/users/:id` - Update user
+- `POST /api/admin/users/:id/credits` - Add credits to user
+- `GET /api/admin/invite-codes` - List invite codes
+- `POST /api/admin/invite-codes` - Create invite code
+- `DELETE /api/admin/invite-codes/:id` - Delete invite code
+
 ### Flask Backend (Port 3001)
 - `GET /api/health` - Health check with GeoCLIP status
 - `POST /api/geoclip/predict` - Image geolocation prediction
@@ -240,6 +258,10 @@ FLASK_DEBUG=1 python app.py
 ## 📝 Development Notes
 
 ### Recent Changes
+- ✅ **Authentication System**: Complete SSO with Google & LinkedIn OAuth
+- ✅ **Invite Code Gate**: Beta access control with invite codes (FOUNDER2024, BETA2024)
+- ✅ **Admin Dashboard**: Full admin panel for user management, stats, and invite code creation
+- ✅ **User Profile**: Dynamic user data display (name, initials, tier)
 - ✅ **Anthropic Claude AI Integration**: Smart property analysis with AI-powered insights
 - ✅ **New Scoring System**: Weighted scoring (Listing Quality 40%, Space Efficiency 35%, Data Completeness 25%)
 - ✅ **URL Analysis Flow**: Combined scrape + analysis + AI in single endpoint

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { ArrowRight, Sparkles, TrendingUp, Menu, X, CheckCircle, Camera, Download, Settings, CreditCard, History, Plus, BarChart3, MapPin, User, Bell, Search, Image, Zap, Shield, Globe, Users, Key, FileText, Filter, Calendar, Target, Award, Activity, PieChart, TrendingDown, Clock, Star, AlertCircle, CheckCircle2, ScanSearch, Navigation2, ChevronDown, ChevronUp, Home, Building2 } from 'lucide-react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { ArrowRight, Sparkles, TrendingUp, Menu, X, CheckCircle, Camera, Download, Settings, CreditCard, History, Plus, BarChart3, MapPin, User, Bell, Search, Image, Zap, Shield, Globe, Users, Key, FileText, Filter, Calendar, Target, Award, Activity, PieChart, TrendingDown, Clock, Star, AlertCircle, CheckCircle2, ScanSearch, Navigation2, ChevronDown, ChevronUp, Home, Building2, LogOut } from 'lucide-react'
 import PropertyInput from './components/PropertyInput'
 import PropertyResults from './components/PropertyResults'
 import PropertyDetective from './components/PropertyDetective'
@@ -8,7 +9,13 @@ import PaymentPage from './components/PaymentPage'
 import CreditsPage from './components/CreditsPage'
 import AccountPage from './components/AccountPage'
 import SettingsPage from './components/SettingsPage'
+import LoginPage from './components/LoginPage'
+import SignupPage from './components/SignupPage'
+import AuthCallback from './components/AuthCallback'
+import InviteCodePage from './components/InviteCodePage'
+import AdminDashboard from './components/AdminDashboard'
 import { usePropertyAnalysis } from './hooks/usePropertyAnalysis'
+import { useAuth } from './context/AuthContext'
 
 // Helper function to format time ago
 function formatTimeAgo(date) {
@@ -34,26 +41,196 @@ function formatTimeAgo(date) {
   }
 }
 
-function App() {
+// Route wrapper components
+function LandingPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <LandingPage
+      onEnterApp={() => navigate('/invite')}
+      onLogin={() => navigate('/login')}
+      onSignup={() => navigate('/invite')}
+    />
+  );
+}
+
+function LoginPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <LoginPage
+      onBack={() => navigate('/')}
+      onSwitchToSignup={() => navigate('/invite')}
+      onSuccess={() => navigate('/dashboard')}
+    />
+  );
+}
+
+function SignupPageRoute() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const ref = new URLSearchParams(location.search).get('ref');
+  const [hasInviteCode, setHasInviteCode] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check if user has a valid invite code in session
+  useEffect(() => {
+    const code = sessionStorage.getItem('validInviteCode');
+    if (!code) {
+      navigate('/invite');
+    } else {
+      setHasInviteCode(true);
+    }
+    setIsChecking(false);
+  }, [navigate]);
+
+  // Show nothing while checking
+  if (isChecking || !hasInviteCode) {
+    return null;
+  }
+
+  return (
+    <SignupPage
+      onBack={() => navigate('/invite')}
+      onSwitchToLogin={() => navigate('/login')}
+      onSuccess={() => navigate('/dashboard')}
+    />
+  );
+}
+
+function AuthCallbackRoute() {
+  const navigate = useNavigate();
+  return (
+    <AuthCallback
+      onSuccess={() => navigate('/dashboard')}
+      onError={() => navigate('/login')}
+    />
+  );
+}
+
+function PaymentPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <PaymentPage 
+      onBack={() => navigate('/dashboard')} 
+    />
+  );
+}
+
+function CreditsPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <CreditsPage 
+      onBack={() => navigate('/dashboard')} 
+    />
+  );
+}
+
+function AccountPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <AccountPage 
+      onBack={() => navigate('/dashboard')} 
+    />
+  );
+}
+
+function SettingsPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <SettingsPage
+      onBack={() => navigate('/dashboard')}
+    />
+  );
+}
+
+function InviteCodePageRoute() {
+  const navigate = useNavigate();
+  return (
+    <InviteCodePage
+      onValidCode={(code, codeData) => {
+        // Store code for signup
+        sessionStorage.setItem('validInviteCode', code);
+        if (codeData) {
+          sessionStorage.setItem('inviteCodeData', JSON.stringify(codeData));
+        }
+        navigate('/signup');
+      }}
+      onBack={() => navigate('/')}
+    />
+  );
+}
+
+function AdminDashboardRoute() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Check if user is admin
+  if (!user?.isAdmin) {
+    navigate('/dashboard');
+    return null;
+  }
+
+  return (
+    <AdminDashboard
+      onBack={() => navigate('/dashboard')}
+    />
+  );
+}
+
+function ListingAnalysisRoute() {
+  const navigate = useNavigate();
   const { analyze, loading, error, result, reset } = usePropertyAnalysis();
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Back to Dashboard
+          </button>
+        </div>
+        <PropertyInput 
+          onAnalyze={analyze}
+          loading={loading}
+          error={error}
+          result={result}
+          reset={reset}
+        />
+        {result && <PropertyResults result={result} />}
+      </div>
+    </div>
+  );
+}
+
+function PhotoLocationSearchRoute() {
+  const navigate = useNavigate();
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Back to Dashboard
+          </button>
+        </div>
+        <PropertyDetective />
+      </div>
+    </div>
+  );
+}
+
+// Dashboard Component - extracted from App
+function Dashboard() {
+  const navigate = useNavigate();
+  const { analyze, loading, error, result, reset } = usePropertyAnalysis();
+  const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('url'); // 'url' or 'detective'
-  // Check URL or localStorage to determine initial view
-  const [showLandingPage, setShowLandingPage] = useState(true); // Default to landing page
-  const [dashboardView, setDashboardView] = useState('overview'); // Default to overview
-  
-  // Check localStorage after mount to restore previous view
-  useEffect(() => {
-    try {
-      const savedView = localStorage.getItem('dashboardView');
-      if (savedView === 'payment' || savedView === 'overview') {
-        setShowLandingPage(false);
-        setDashboardView(savedView || 'overview');
-      }
-    } catch (error) {
-      console.warn('localStorage access failed:', error);
-    }
-  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedAnalysis, setExpandedAnalysis] = useState(null); // Track which analysis is expanded
   const [fabMenuOpen, setFabMenuOpen] = useState(false); // Track floating action button menu state
@@ -350,13 +527,7 @@ function App() {
         break;
       case 'view-upgrade':
         // Navigate to payment/upgrade page
-        setDashboardView('payment');
-        setShowLandingPage(false);
-        try {
-          localStorage.setItem('dashboardView', 'payment');
-        } catch (e) {
-          console.warn('localStorage access failed:', e);
-        }
+        navigate('/dashboard/payment');
         // Scroll to top of page
         window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
@@ -381,126 +552,6 @@ function App() {
     }
   };
 
-  // Show landing page first
-  if (showLandingPage) {
-    return <LandingPage onEnterApp={() => {
-      localStorage.setItem('dashboardView', 'overview');
-      setDashboardView('overview');
-      setShowLandingPage(false);
-    }} />;
-  }
-
-  // Show payment page
-  if (dashboardView === 'payment') {
-    return (
-      <PaymentPage 
-        onBack={() => {
-          try {
-            localStorage.setItem('dashboardView', 'overview');
-          } catch (e) {
-            console.warn('localStorage access failed:', e);
-          }
-          setDashboardView('overview');
-        }} 
-      />
-    );
-  }
-
-  // Show credits page
-  if (dashboardView === 'credits') {
-    return (
-      <CreditsPage 
-        onBack={() => {
-          try {
-            localStorage.setItem('dashboardView', 'overview');
-          } catch (e) {
-            console.warn('localStorage access failed:', e);
-          }
-          setDashboardView('overview');
-        }} 
-      />
-    );
-  }
-
-  // Show account page
-  if (dashboardView === 'account') {
-    return (
-      <AccountPage 
-        onBack={() => {
-          try {
-            localStorage.setItem('dashboardView', 'overview');
-          } catch (e) {
-            console.warn('localStorage access failed:', e);
-          }
-          setDashboardView('overview');
-        }} 
-      />
-    );
-  }
-
-  // Show settings page
-  if (dashboardView === 'settings') {
-    return (
-      <SettingsPage 
-        onBack={() => {
-          try {
-            localStorage.setItem('dashboardView', 'overview');
-          } catch (e) {
-            console.warn('localStorage access failed:', e);
-          }
-          setDashboardView('overview');
-        }} 
-      />
-    );
-  }
-
-  // Show listing analysis flow
-  if (dashboardView === 'listing-analysis') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="mb-6">
-            <button 
-              onClick={() => setDashboardView('overview')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowRight className="w-4 h-4 rotate-180" />
-              Back to Dashboard
-            </button>
-          </div>
-          <PropertyInput 
-            onAnalyze={analyze}
-            loading={loading}
-            error={error}
-            result={result}
-            reset={reset}
-          />
-          {result && <PropertyResults result={result} />}
-        </div>
-      </div>
-    );
-  }
-
-  // Show photo location search flow
-  if (dashboardView === 'photo-location-search') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="mb-6">
-            <button 
-              onClick={() => setDashboardView('overview')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowRight className="w-4 h-4 rotate-180" />
-              Back to Dashboard
-            </button>
-          </div>
-          <PropertyDetective />
-        </div>
-      </div>
-    );
-  }
-
   // Main Dashboard
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden">
@@ -515,8 +566,8 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Logo & Brand */}
-            <button 
-              onClick={() => setShowLandingPage(true)}
+            <button
+              onClick={() => navigate('/dashboard')}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-12 h-12 flex items-center justify-center shadow-md" style={{ padding: '0px' }}>
@@ -705,7 +756,7 @@ function App() {
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors group"
                 >
                   <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md group-hover:ring-2 group-hover:ring-primary-300 transition-all">
-                    JD
+                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
                   </div>
                 </button>
                 
@@ -724,11 +775,11 @@ function App() {
                       <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-primary-50/50 to-white">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white font-semibold text-base shadow-md">
-                            JD
+                            {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-bold text-slate-900 font-heading truncate">John Doe</div>
-                            <div className="text-xs text-slate-600 font-medium">Premium Plan</div>
+                            <div className="text-sm font-bold text-slate-900 font-heading truncate">{user?.name || 'User'}</div>
+                            <div className="text-xs text-slate-600 font-medium">{user?.tier ? `${user.tier.charAt(0).toUpperCase() + user.tier.slice(1)} Plan` : 'Free Plan'}</div>
                           </div>
                         </div>
                       </div>
@@ -738,13 +789,7 @@ function App() {
                         <button
                           onClick={() => {
                             setProfileMenuOpen(false);
-                            setDashboardView('credits');
-                            setShowLandingPage(false);
-                            try {
-                              localStorage.setItem('dashboardView', 'credits');
-                            } catch (e) {
-                              console.warn('localStorage access failed:', e);
-                            }
+                            navigate('/dashboard/credits');
                           }}
                           className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors group"
                         >
@@ -760,13 +805,7 @@ function App() {
                         <button
                           onClick={() => {
                             setProfileMenuOpen(false);
-                            setDashboardView('payment');
-                            setShowLandingPage(false);
-                            try {
-                              localStorage.setItem('dashboardView', 'payment');
-                            } catch (e) {
-                              console.warn('localStorage access failed:', e);
-                            }
+                            navigate('/dashboard/payment');
                           }}
                           className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors group"
                         >
@@ -784,13 +823,7 @@ function App() {
                         <button
                           onClick={() => {
                             setProfileMenuOpen(false);
-                            setDashboardView('account');
-                            setShowLandingPage(false);
-                            try {
-                              localStorage.setItem('dashboardView', 'account');
-                            } catch (e) {
-                              console.warn('localStorage access failed:', e);
-                            }
+                            navigate('/dashboard/account');
                           }}
                           className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors group"
                         >
@@ -806,13 +839,7 @@ function App() {
                         <button
                           onClick={() => {
                             setProfileMenuOpen(false);
-                            setDashboardView('settings');
-                            setShowLandingPage(false);
-                            try {
-                              localStorage.setItem('dashboardView', 'settings');
-                            } catch (e) {
-                              console.warn('localStorage access failed:', e);
-                            }
+                            navigate('/dashboard/settings');
                           }}
                           className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors group"
                         >
@@ -838,7 +865,7 @@ function App() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 font-heading mb-2">Welcome back, John!</h2>
+          <h2 className="text-3xl font-bold text-slate-900 font-heading mb-2">Welcome back, {user?.name?.split(' ')[0] || 'User'}!</h2>
           <p className="text-slate-600">Here's your analysis overview and recent activity.</p>
         </div>
 
@@ -1120,8 +1147,7 @@ function App() {
                   {/* Premium CTA Button */}
                   <button 
                     onClick={() => {
-                      localStorage.setItem('dashboardView', 'payment');
-                      setDashboardView('payment');
+                      navigate('/dashboard/payment');
                     }}
                     className="group relative w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] flex items-center justify-center gap-2 overflow-hidden mb-2.5"
                   >
@@ -1186,8 +1212,7 @@ function App() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
                   <button
                     onClick={() => {
-                      setActiveTab('url');
-                      setShowLandingPage(false);
+                      navigate('/dashboard/listing-analysis');
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className="group relative bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] flex items-center gap-2 overflow-hidden"
@@ -1201,8 +1226,7 @@ function App() {
                   
                   <button
                     onClick={() => {
-                      setActiveTab('detective');
-                      setShowLandingPage(false);
+                      navigate('/dashboard/photo-location-search');
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className="group relative bg-white border-2 border-primary-200 hover:border-primary-300 text-primary-700 hover:text-primary-800 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
@@ -1583,8 +1607,7 @@ function App() {
                     <button
                       onClick={() => {
                         setCreditsModalOpen(false);
-                        localStorage.setItem('dashboardView', 'payment');
-                        setDashboardView('payment');
+                        navigate('/dashboard/payment');
                       }}
                       className="flex-1 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
@@ -1613,7 +1636,7 @@ function App() {
                 <div className="relative group">
                 <button 
                   onClick={() => {
-                    setDashboardView('listing-analysis');
+                    navigate('/dashboard/listing-analysis');
                     setFabMenuOpen(false);
                   }}
                     className="w-12 h-12 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-primary-400 hover:border-primary-500 backdrop-blur-sm"
@@ -1631,7 +1654,7 @@ function App() {
                 <div className="relative group">
                 <button 
                   onClick={() => {
-                    setDashboardView('photo-location-search');
+                    navigate('/dashboard/photo-location-search');
                     setFabMenuOpen(false);
                   }}
                     className="w-12 h-12 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-primary-400 hover:border-primary-500 backdrop-blur-sm"
@@ -1731,6 +1754,27 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main App component with Routes
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPageRoute />} />
+      <Route path="/invite" element={<InviteCodePageRoute />} />
+      <Route path="/login" element={<LoginPageRoute />} />
+      <Route path="/signup" element={<SignupPageRoute />} />
+      <Route path="/auth/callback" element={<AuthCallbackRoute />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard/payment" element={<PaymentPageRoute />} />
+      <Route path="/dashboard/credits" element={<CreditsPageRoute />} />
+      <Route path="/dashboard/account" element={<AccountPageRoute />} />
+      <Route path="/dashboard/settings" element={<SettingsPageRoute />} />
+      <Route path="/dashboard/listing-analysis" element={<ListingAnalysisRoute />} />
+      <Route path="/dashboard/photo-location-search" element={<PhotoLocationSearchRoute />} />
+      <Route path="/admin" element={<AdminDashboardRoute />} />
+    </Routes>
   );
 }
 
