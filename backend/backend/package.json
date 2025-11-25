@@ -20,6 +20,7 @@
   "author": "ProprScout Team",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
     "axios": "^1.6.2",
     "cloudinary": "^1.41.0",
     "compression": "^1.7.4",

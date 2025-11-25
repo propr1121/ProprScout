@@ -6,6 +6,8 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { query } from '../database/init.js';
 import { scrapeProperty } from '../lib/scrapers/propertyScraper.js';
+import { analyzeProperty } from '../lib/analysis/propertyAnalyzer.js';
+import { analyzeListingWithAI, isConfigured as isAIConfigured } from '../services/anthropic.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -74,6 +76,123 @@ router.post('/scrape', [
     logger.error('Property scraping failed:', error);
     res.status(500).json({
       error: 'Property scraping failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/properties/analyze-url
+ * Scrape property data from URL and perform full analysis with AI
+ * This is the main endpoint for the URL analysis flow
+ */
+router.post('/analyze-url', [
+  body('url').isURL().withMessage('Valid property URL is required')
+], async (req, res) => {
+  try {
+    // Validate request
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { url } = req.body;
+    const startTime = Date.now();
+
+    logger.info(`🔍 Full property analysis for URL: ${url}`);
+
+    // Step 1: Scrape property data
+    let propertyData;
+    try {
+      propertyData = await scrapeProperty(url);
+      logger.info(`✅ Scraped property: ${propertyData.title}`);
+    } catch (scrapeError) {
+      logger.error('Scraping failed:', scrapeError);
+      return res.status(400).json({
+        error: 'Could not scrape property',
+        message: scrapeError.message
+      });
+    }
+
+    // Step 2: Run basic analysis
+    logger.info('📊 Running property analysis...');
+    const analysis = analyzeProperty(propertyData);
+    logger.info(`✅ Basic analysis complete - Score: ${analysis.overallScore.score}`);
+
+    // Step 3: Run AI analysis if configured
+    let aiAnalysis = null;
+    if (isAIConfigured()) {
+      try {
+        logger.info('🤖 Running AI analysis with Anthropic Claude...');
+        aiAnalysis = await analyzeListingWithAI(propertyData);
+        logger.info('✅ AI analysis complete');
+      } catch (aiError) {
+        logger.warn('AI analysis failed, continuing without it:', aiError.message);
+        aiAnalysis = {
+          error: true,
+          message: 'AI analysis temporarily unavailable'
+        };
+      }
+    } else {
+      logger.info('⚠️ Anthropic API key not configured, skipping AI analysis');
+    }
+
+    // Add AI analysis to results
+    analysis.aiAnalysis = aiAnalysis;
+
+    // Calculate processing time
+    const processingTime = Date.now() - startTime;
+
+    // Step 4: Store in database (optional, don't fail if it doesn't work)
+    try {
+      await query(`
+        INSERT INTO properties (
+          url, site, property_id, title, description, price, area,
+          rooms, bathrooms, location, features, images, raw_data
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ON CONFLICT (url) DO UPDATE SET
+          updated_at = NOW()
+        RETURNING id
+      `, [
+        propertyData.url || url,
+        propertyData.site,
+        propertyData.propertyId,
+        propertyData.title,
+        propertyData.description,
+        propertyData.price,
+        propertyData.area,
+        propertyData.rooms,
+        propertyData.bathrooms,
+        propertyData.location,
+        propertyData.features,
+        propertyData.images,
+        JSON.stringify(propertyData)
+      ]);
+    } catch (dbError) {
+      logger.warn('Failed to store property in database:', dbError.message);
+    }
+
+    logger.info(`🎉 Full analysis completed in ${processingTime}ms`);
+
+    // Return combined result
+    res.json({
+      success: true,
+      data: {
+        propertyData,
+        analysis,
+        url,
+        analyzedAt: new Date().toISOString(),
+        processingTime
+      }
+    });
+
+  } catch (error) {
+    logger.error('Property analysis failed:', error);
+    res.status(500).json({
+      error: 'Property analysis failed',
       message: error.message
     });
   }

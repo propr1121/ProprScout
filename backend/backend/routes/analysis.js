@@ -6,6 +6,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { query } from '../database/init.js';
 import { analyzeProperty } from '../lib/analysis/propertyAnalyzer.js';
+import { analyzeListingWithAI, isConfigured as isAIConfigured } from '../services/anthropic.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -57,8 +58,29 @@ router.post('/analyze', [
       };
     }
 
-    // Analyze property
+    // Analyze property (basic analysis)
     const analysis = analyzeProperty(property);
+
+    // Get AI-powered analysis if configured
+    let aiAnalysis = null;
+    if (isAIConfigured()) {
+      try {
+        logger.info('Running AI analysis with Anthropic Claude...');
+        aiAnalysis = await analyzeListingWithAI(property);
+        logger.info('AI analysis completed successfully');
+      } catch (aiError) {
+        logger.warn('AI analysis failed, continuing without it:', aiError);
+        aiAnalysis = {
+          error: true,
+          message: 'AI analysis temporarily unavailable'
+        };
+      }
+    } else {
+      logger.info('Anthropic API key not configured, skipping AI analysis');
+    }
+
+    // Add AI analysis to the result
+    analysis.aiAnalysis = aiAnalysis;
 
     // Store analysis result
     try {

@@ -145,7 +145,7 @@ export default function PropertyResults({ result, loading, error }) {
   const priceEfficiency = analysis.priceEfficiency || analysis.priceAnalysis;
   const locationContext = analysis.locationContext || analysis.locationAnalysis;
   const spaceConfiguration = analysis.spaceConfiguration || analysis.propertyAnalysis;
-  const { overallScore, dataQuality, listingQuality, recommendations, risks, opportunities, disclaimer } = analysis;
+  const { overallScore, dataQuality, listingQuality, recommendations, risks, opportunities, disclaimer, aiAnalysis } = analysis;
   const overallDisplay = getOverallScoreDisplay(overallScore.score);
 
   return (
@@ -521,6 +521,133 @@ export default function PropertyResults({ result, loading, error }) {
                 <span className="text-sm font-medium text-yellow-800">{recommendation}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI-Powered Analysis Section */}
+      {aiAnalysis && !aiAnalysis.error && (
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl shadow-xl border border-violet-200 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">AI Intelligence Report</h3>
+              <p className="text-gray-600">Powered by Claude AI - Portuguese market specialist</p>
+            </div>
+            {aiAnalysis.listingQuality?.score && (
+              <div className="ml-auto text-right">
+                <div className="text-3xl font-bold text-violet-600">{aiAnalysis.listingQuality.score}</div>
+                <div className="text-sm text-gray-600">AI Quality Score</div>
+              </div>
+            )}
+          </div>
+
+          {/* AI Listing Quality Assessment */}
+          {aiAnalysis.listingQuality && (
+            <div className="mb-6 p-4 bg-white rounded-xl border border-violet-200">
+              <h4 className="font-semibold text-gray-900 mb-2">Listing Assessment</h4>
+              <p className="text-gray-700 mb-3">{aiAnalysis.listingQuality.summary}</p>
+              {aiAnalysis.listingQuality.strengths?.length > 0 && (
+                <div className="mb-3">
+                  <span className="text-sm font-medium text-green-700">Strengths: </span>
+                  <span className="text-sm text-gray-600">{aiAnalysis.listingQuality.strengths.join(' | ')}</span>
+                </div>
+              )}
+              {aiAnalysis.listingQuality.improvements?.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium text-amber-700">Areas for improvement: </span>
+                  <span className="text-sm text-gray-600">{aiAnalysis.listingQuality.improvements.join(' | ')}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AI Pricing Insight */}
+          {aiAnalysis.pricingInsight && (
+            <div className="mb-6 p-4 bg-white rounded-xl border border-violet-200">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="w-5 h-5 text-violet-600" />
+                <h4 className="font-semibold text-gray-900">Pricing Assessment</h4>
+                <span className={`ml-auto px-3 py-1 rounded-full text-xs font-medium ${
+                  aiAnalysis.pricingInsight.assessment === 'competitive' ? 'bg-green-100 text-green-700' :
+                  aiAnalysis.pricingInsight.assessment === 'fair' ? 'bg-blue-100 text-blue-700' :
+                  aiAnalysis.pricingInsight.assessment === 'premium' ? 'bg-amber-100 text-amber-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  {aiAnalysis.pricingInsight.assessment}
+                </span>
+              </div>
+              <p className="text-gray-700 mb-2">{aiAnalysis.pricingInsight.reasoning}</p>
+              <p className="text-xs text-gray-500 italic">{aiAnalysis.pricingInsight.caveat}</p>
+            </div>
+          )}
+
+          {/* AI Opportunities */}
+          {aiAnalysis.opportunities?.length > 0 && !aiAnalysis.opportunities.includes('AI analysis temporarily unavailable') && (
+            <div className="mb-6">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Target className="w-5 h-5 text-violet-600" />
+                Agent Opportunities
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {aiAnalysis.opportunities.map((opportunity, idx) => (
+                  <div key={idx} className="p-3 bg-white rounded-lg border border-violet-200">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-violet-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-700">{opportunity}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Agent Tips */}
+          {aiAnalysis.agentTips?.length > 0 && !aiAnalysis.agentTips.includes('AI analysis temporarily unavailable') && (
+            <div className="mb-6">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-violet-600" />
+                Agent Tips
+              </h4>
+              <div className="space-y-2">
+                {aiAnalysis.agentTips.map((tip, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-violet-200">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-gray-700">{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Market Context */}
+          {aiAnalysis.marketContext && aiAnalysis.marketContext !== 'AI analysis temporarily unavailable' && (
+            <div className="p-4 bg-violet-100 rounded-xl">
+              <h4 className="font-semibold text-violet-900 mb-2 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Market Context
+              </h4>
+              <p className="text-sm text-violet-800">{aiAnalysis.marketContext}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Analysis Unavailable Notice */}
+      {aiAnalysis && aiAnalysis.error && (
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-gray-400" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-700">AI Analysis Unavailable</h4>
+              <p className="text-sm text-gray-500">AI-powered insights are temporarily unavailable. The basic analysis above is still complete.</p>
+            </div>
           </div>
         </div>
       )}

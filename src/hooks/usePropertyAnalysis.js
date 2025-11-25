@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { parsePropertyUrl } from '../lib/scrapers/urlParser';
-import { scrapeProperty } from '../lib/scrapers/propertyScraper';
-import { analyzeProperty } from '../lib/analysis/propertyAnalyzer';
+
+// Backend API URL - Node.js backend on port 3002
+const API_BASE_URL = 'http://localhost:3002';
 
 /**
  * Custom hook for property analysis workflow
+ * Uses backend API for full analysis including AI insights
  * @returns {Object} - { analyze, loading, error, result }
  */
 export function usePropertyAnalysis() {
@@ -13,7 +14,7 @@ export function usePropertyAnalysis() {
   const [result, setResult] = useState(null);
 
   /**
-   * Analyze a property from URL
+   * Analyze a property from URL using backend API
    * @param {string} url - Property URL
    */
   const analyze = useCallback(async (url) => {
@@ -22,28 +23,83 @@ export function usePropertyAnalysis() {
     setResult(null);
 
     try {
-      // Scrape property data using robust scraper
-      const propertyData = await scrapeProperty(url);
-      
-            // Analyze the property data
-            console.log('🔍 Starting analysis for property data:', propertyData);
-            const analysis = analyzeProperty(propertyData);
-            console.log('✅ Analysis completed:', analysis);
-            
-            // Set the complete result
-            const result = { 
-              propertyData, 
-              analysis,
-              url: url,
-              analyzedAt: new Date().toISOString()
-            };
-            console.log('📊 Setting result:', result);
-            setResult(result);
+      console.log(`🔍 Analyzing property URL: ${url}`);
+
+      // Call the backend analyze-url endpoint
+      const response = await fetch(`${API_BASE_URL}/api/properties/analyze-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'Analysis failed');
+      }
+
+      const { propertyData, analysis, analyzedAt, processingTime } = responseData.data;
+
+      console.log('✅ Analysis completed:', {
+        score: analysis.overallScore?.score,
+        hasAI: !!analysis.aiAnalysis && !analysis.aiAnalysis.error,
+        processingTime
+      });
+
+      // Set the complete result
+      const finalResult = {
+        propertyData,
+        analysis,
+        url,
+        analyzedAt,
+        processingTime
+      };
+
+      setResult(finalResult);
     } catch (err) {
       console.error('Property analysis error:', err);
-      // Ensure we always set a user-friendly error message
-      const errorMessage = err.message || 'An unexpected error occurred while analyzing the property';
-      setError(errorMessage);
+
+      // Check if it's a network error (backend not running)
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setError('Cannot connect to server. Please ensure the backend is running on port 3002.');
+      } else {
+        setError(err.message || 'An unexpected error occurred while analyzing the property');
+      }
+
+      // If backend fails, try local fallback analysis
+      try {
+        console.log('⚠️ Attempting local fallback analysis...');
+        const { scrapeProperty } = await import('../lib/scrapers/propertyScraper.js');
+        const { analyzeProperty } = await import('../lib/analysis/propertyAnalyzer.js');
+
+        const propertyData = await scrapeProperty(url);
+        const analysis = analyzeProperty(propertyData);
+
+        // Mark as fallback (no AI)
+        analysis.aiAnalysis = {
+          error: true,
+          message: 'AI analysis unavailable - using local analysis'
+        };
+
+        setResult({
+          propertyData,
+          analysis,
+          url,
+          analyzedAt: new Date().toISOString(),
+          isFallback: true
+        });
+        setError(null); // Clear error if fallback succeeds
+      } catch (fallbackErr) {
+        console.error('Fallback analysis also failed:', fallbackErr);
+        // Keep original error
+      }
     } finally {
       setLoading(false);
     }
@@ -65,12 +121,12 @@ export function usePropertyAnalysis() {
     setError(null);
   }, []);
 
-  return { 
-    analyze, 
+  return {
+    analyze,
     reset,
     clearError,
-    loading, 
-    error, 
-    result 
+    loading,
+    error,
+    result
   };
 }
