@@ -14,8 +14,6 @@
  * @returns {Object} - Analysis results with scores
  */
 export function analyzeProperty(propertyData) {
-  console.log('🔍 Analyzing property data:', JSON.stringify(propertyData, null, 2));
-
   try {
     const {
       price,

@@ -23,7 +23,6 @@ export function usePropertyAnalysis() {
     setResult(null);
 
     try {
-      console.log(`🔍 Analyzing property URL: ${url}`);
 
       // Call the backend analyze-url endpoint
       const response = await fetch(`${API_BASE_URL}/api/properties/analyze-url`, {
@@ -47,12 +46,6 @@ export function usePropertyAnalysis() {
 
       const { propertyData, analysis, analyzedAt, processingTime } = responseData.data;
 
-      console.log('✅ Analysis completed:', {
-        score: analysis.overallScore?.score,
-        hasAI: !!analysis.aiAnalysis && !analysis.aiAnalysis.error,
-        processingTime
-      });
-
       // Set the complete result
       const finalResult = {
         propertyData,
@@ -75,7 +68,6 @@ export function usePropertyAnalysis() {
 
       // If backend fails, try local fallback analysis
       try {
-        console.log('⚠️ Attempting local fallback analysis...');
         const { scrapeProperty } = await import('../lib/scrapers/propertyScraper.js');
         const { analyzeProperty } = await import('../lib/analysis/propertyAnalyzer.js');
 
@@ -96,9 +88,8 @@ export function usePropertyAnalysis() {
           isFallback: true
         });
         setError(null); // Clear error if fallback succeeds
-      } catch (fallbackErr) {
-        console.error('Fallback analysis also failed:', fallbackErr);
-        // Keep original error
+      } catch {
+        // Keep original error - fallback also failed
       }
     } finally {
       setLoading(false);

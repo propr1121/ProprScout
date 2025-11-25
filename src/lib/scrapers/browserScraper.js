@@ -83,12 +83,11 @@ export async function scrapeProperty(url) {
       throw new Error('No property data could be extracted from the page. The website structure may have changed.');
     }
 
-    // Check if we got generic/fallback data (indicates demo URLs)
-    if (propertyData.title.includes('Casas e apartamentos para comprar') || 
+    // Check if we got generic/fallback data (indicates invalid or search page URL)
+    if (propertyData.title.includes('Casas e apartamentos para comprar') ||
         propertyData.title.includes('Todo o país') ||
         propertyData.price === null) {
-      console.log('🎭 Demo URL detected - providing realistic demo data');
-      return getDemoPropertyData(url);
+      throw new Error('This appears to be a search results page, not a property listing. Please use a direct link to a specific property.');
     }
 
     console.log(`✅ Successfully scraped property data:`, propertyData);
@@ -98,68 +97,6 @@ export async function scrapeProperty(url) {
     console.error(`❌ Browser scraping failed for ${url}:`, error.message);
     throw new Error(`Property scraping failed: ${error.message}`);
   }
-}
-
-/**
- * Get realistic demo property data for example URLs
- */
-function getDemoPropertyData(url) {
-  const demoProperties = [
-    {
-      title: "Apartamento T3 com Vista Mar - Cascais",
-      price: 450000,
-      location: "Cascais, Lisboa",
-      area: 120,
-      bedrooms: 3,
-      bathrooms: 2,
-      images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"],
-      description: "Apartamento moderno com vista para o mar, localizado no centro histórico de Cascais. Próximo de transportes públicos e comércio.",
-      features: ["Vista Mar", "Elevador", "Estacionamento", "Terraço", "Ar Condicionado"],
-      coordinates: { lat: 38.6979, lng: -9.4205 }
-    },
-    {
-      title: "Casa T4 com Jardim - Porto",
-      price: 320000,
-      location: "Cedofeita, Porto",
-      area: 180,
-      bedrooms: 4,
-      bathrooms: 3,
-      images: ["https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800"],
-      description: "Casa de família com jardim privado, localizada no bairro histórico de Cedofeita. Ideal para famílias.",
-      features: ["Jardim", "Garagem", "Aquecimento Central", "Segurança", "WiFi"],
-      coordinates: { lat: 41.1579, lng: -8.6291 }
-    },
-    {
-      title: "Loft T2 Renovado - Lisboa",
-      price: 280000,
-      location: "Bairro Alto, Lisboa",
-      area: 85,
-      bedrooms: 2,
-      bathrooms: 1,
-      images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800"],
-      description: "Loft moderno totalmente renovado no coração do Bairro Alto. Excelente localização para jovens profissionais.",
-      features: ["Renovado", "Mobiliado", "Elevador", "Segurança", "WiFi"],
-      coordinates: { lat: 38.7223, lng: -9.1393 }
-    }
-  ];
-
-  // Select demo property based on URL
-  let selectedProperty;
-  if (url.includes('idealista')) {
-    selectedProperty = demoProperties[0]; // Cascais apartment
-  } else if (url.includes('imovirtual')) {
-    selectedProperty = demoProperties[1]; // Porto house
-  } else {
-    selectedProperty = demoProperties[2]; // Lisboa loft
-  }
-
-  return {
-    ...selectedProperty,
-    scrapedAt: new Date().toISOString(),
-    site: url.includes('idealista') ? 'idealista' : url.includes('imovirtual') ? 'imovirtual' : 'supercasa',
-    propertyId: 'demo-' + Math.random().toString(36).substr(2, 9),
-    isDemo: true
-  };
 }
 
 /**

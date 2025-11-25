@@ -11,20 +11,10 @@ import { Search, Link2, Loader2, Sparkles, ArrowRight, AlertCircle } from 'lucid
 export default function PropertyInput({ onAnalyze, loading, error }) {
   const [url, setUrl] = useState('');
 
-  const exampleUrls = [
-    'https://www.idealista.pt/imovel/33456789/',
-    'https://www.imovirtual.com/anuncios/12345678-ID12345678.html',
-    'https://www.supercasa.pt/imovel/12345678'
-  ];
-
   const handleAnalyze = () => {
     if (url.trim() && !loading) {
       onAnalyze(url.trim());
     }
-  };
-
-  const handleExampleClick = (exampleUrl) => {
-    setUrl(exampleUrl);
   };
 
   const handleKeyPress = (e) => {
@@ -91,28 +81,19 @@ export default function PropertyInput({ onAnalyze, loading, error }) {
         )}
       </button>
 
-              {/* Examples Section */}
-              <div className="border-t border-gray-200 my-6">
-                <p className="text-sm text-gray-500 mb-4">Try these example formats:</p>
-                <div className="flex flex-wrap gap-2">
-                  {exampleUrls.map((exampleUrl, index) => (
-                    <button
-                      key={index}
-                      className="text-sm text-primary-600 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                      onClick={() => handleExampleClick(exampleUrl)}
-                      disabled={loading}
-                    >
-                      {exampleUrl.includes('idealista') ? 'Idealista' : exampleUrl.includes('imovirtual') ? 'Imovirtual' : 'Supercasa'} format →
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <strong>⚠️ Demo Mode:</strong> These are example URL formats, not real property listings.<br />
-                    For real analysis, use actual property URLs from Portuguese real estate websites.
-                  </p>
-                </div>
-              </div>
+      {/* Supported Portals Section */}
+      <div className="border-t border-gray-200 mt-6 pt-6">
+        <p className="text-sm text-gray-500 mb-3">Supported Portuguese property portals:</p>
+        <div className="flex flex-wrap gap-2">
+          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">idealista.pt</span>
+          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">imovirtual.com</span>
+          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">supercasa.pt</span>
+          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">casa.sapo.pt</span>
+        </div>
+        <p className="text-xs text-gray-400 mt-3">
+          Paste any property listing URL from these portals to get instant AI-powered analysis.
+        </p>
+      </div>
 
       {/* Feature Stats */}
       <div className="grid grid-cols-3 gap-4 mt-8">

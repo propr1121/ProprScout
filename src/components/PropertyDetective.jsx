@@ -16,7 +16,6 @@ export default function PropertyDetective() {
   const [quota, setQuota] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSharePrompt, setShowSharePrompt] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
 
   // Fetch quota on mount
   useEffect(() => {
@@ -83,62 +82,14 @@ export default function PropertyDetective() {
       });
 
       if (!response.ok) {
-        // Demo mode: If backend fails, use mock data for Sintra property
-        if (image && image.name && image.name.includes('demo-sintra')) {
-          console.log('Using demo mode with Sintra coordinates');
-          const demoResult = {
-            coordinates: [-9.3815, 38.8029], // Sintra coordinates (longitude, latitude)
-            confidence: 0.85,
-            address: {
-              formatted: 'Rua Soto Maeir 22, 2710-000 Sintra, Portugal',
-              street: 'Rua Soto Maeir',
-              number: '22',
-              city: 'Sintra',
-              district: 'Lisboa',
-              postalCode: '2710-000',
-              country: 'Portugal'
-            },
-            quality: {
-              confidence: 0.85,
-              confidenceLevel: 'high'
-            }
-          };
-          setResult(demoResult);
-          setLoading(false);
-          return;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Server error: ${response.status}. Please ensure the backend is running.`);
       }
 
       const result = await response.json();
       
       // Check if the response contains an error
       if (result.error) {
-        // Demo mode fallback for Sintra property
-        if (image && image.name && image.name.includes('demo-sintra')) {
-          console.log('Backend error, using demo mode with Sintra coordinates');
-          const demoResult = {
-            coordinates: [-9.3815, 38.8029],
-            confidence: 0.85,
-            address: {
-              formatted: 'Rua Soto Maeir 22, 2710-000 Sintra, Portugal',
-              street: 'Rua Soto Maeir',
-              number: '22',
-              city: 'Sintra',
-              district: 'Lisboa',
-              postalCode: '2710-000',
-              country: 'Portugal'
-            },
-            quality: {
-              confidence: 0.85,
-              confidenceLevel: 'high'
-            }
-          };
-          setResult(demoResult);
-          setLoading(false);
-          return;
-        }
-        throw new Error(`${result.message} (${result.type})`);
+        throw new Error(`${result.message || 'Analysis failed'} ${result.type ? `(${result.type})` : ''}`);
       }
       
       // Check if the result has the expected structure
@@ -168,37 +119,9 @@ export default function PropertyDetective() {
       }
     } catch (error) {
       console.error('Analysis failed:', error);
-      
-      // Demo mode fallback: If backend fails and it's a demo image, use mock Sintra data
-      if (image && image.name && image.name.includes('demo-sintra')) {
-        console.log('Backend unavailable, using demo mode with Sintra coordinates');
-        const demoResult = {
-          coordinates: [-9.3815, 38.8029], // Sintra coordinates (longitude, latitude)
-          confidence: 0.85,
-          address: {
-            formatted: 'Rua Soto Maeir 22, 2710-000 Sintra, Portugal',
-            street: 'Rua Soto Maeir',
-            number: '22',
-            city: 'Sintra',
-            district: 'Lisboa',
-            postalCode: '2710-000',
-            country: 'Portugal'
-          },
-          quality: {
-            confidence: 0.85,
-            confidenceLevel: 'high',
-            warning: null
-          }
-        };
-        setResult(demoResult);
-        setLoading(false);
-        setError(null);
-        return;
-      }
-      
       setError({
         type: 'analysis',
-        message: `Analysis failed: ${error.message}. Please try again or contact support.`
+        message: `Analysis failed: ${error.message}. Please ensure the backend is running and try again.`
       });
       setLoading(false);
     }
