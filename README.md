@@ -27,8 +27,9 @@ A React-based web application for deep property analysis from any listing URL in
 - **React Dropzone** for file uploads
 
 ### Backend
-- **Flask** (Python) for AI analysis
-- **Express.js** for web scraping
+- **Flask** (Python) for GeoCLIP image analysis
+- **Express.js** for API and web scraping
+- **Anthropic Claude** for AI-powered property insights
 - **MongoDB** for data storage
 - **GeoCLIP** for image geolocation
 - **Puppeteer** for robust scraping
@@ -111,6 +112,13 @@ MONGODB_URI=mongodb://localhost:27017/proprscout
 GEOCLIP_DEVICE=auto
 ```
 
+Create `.env` in the `backend/backend/` directory:
+```env
+ANTHROPIC_API_KEY=your_anthropic_api_key
+MONGODB_URI=mongodb://localhost:27017/proprscout
+REDIS_URL=redis://localhost:6379
+```
+
 ## 🔧 Configuration
 
 ### Mapbox Setup
@@ -133,9 +141,15 @@ The GeoCLIP model is automatically downloaded on first run. Ensure you have suff
 
 ### Backend (Port 3002)
 - `GET /api/health` - Health check
+- `POST /api/properties/analyze-url` - Full property analysis (scrape + analyze + AI)
+- `POST /api/properties/scrape` - Scrape property data from URL
 - `POST /api/detective/analyze` - Analyze property photo
 - `GET /api/detective/quota` - Get user quota
 - `GET /api/detective/history` - Get analysis history
+
+### Flask Backend (Port 3001)
+- `GET /api/health` - Health check with GeoCLIP status
+- `POST /api/geoclip/predict` - Image geolocation prediction
 
 ## 🎨 Design System
 
@@ -226,6 +240,10 @@ FLASK_DEBUG=1 python app.py
 ## 📝 Development Notes
 
 ### Recent Changes
+- ✅ **Anthropic Claude AI Integration**: Smart property analysis with AI-powered insights
+- ✅ **New Scoring System**: Weighted scoring (Listing Quality 40%, Space Efficiency 35%, Data Completeness 25%)
+- ✅ **URL Analysis Flow**: Combined scrape + analysis + AI in single endpoint
+- ✅ **AI Intelligence Report**: New UI section displaying AI analysis results
 - ✅ **Mapbox Integration**: Replaced Leaflet with Mapbox GL JS
 - ✅ **GeoCLIP Integration**: AI-powered image geolocation
 - ✅ **Error Handling**: No mock data, real analysis only
