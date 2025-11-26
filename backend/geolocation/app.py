@@ -118,6 +118,63 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def validate_url_ssrf(url):
+    """
+    SSRF Protection - Block internal/private IP addresses and hostnames
+    """
+    from urllib.parse import urlparse
+    import socket
+
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+
+        if not hostname:
+            raise ValueError('Invalid URL: no hostname')
+
+        hostname_lower = hostname.lower()
+
+        # Block localhost variants
+        blocked_hostnames = ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']
+        if hostname_lower in blocked_hostnames:
+            raise ValueError('Access to localhost is not allowed')
+
+        # Only allow HTTP/HTTPS
+        if parsed.scheme not in ['http', 'https']:
+            raise ValueError('Only HTTP and HTTPS protocols are allowed')
+
+        # Resolve hostname and check IP
+        try:
+            ip = socket.gethostbyname(hostname)
+            octets = ip.split('.')
+            if len(octets) == 4:
+                a, b = int(octets[0]), int(octets[1])
+                # 10.0.0.0/8
+                if a == 10:
+                    raise ValueError('Access to private IP addresses is not allowed')
+                # 172.16.0.0/12
+                if a == 172 and 16 <= b <= 31:
+                    raise ValueError('Access to private IP addresses is not allowed')
+                # 192.168.0.0/16
+                if a == 192 and b == 168:
+                    raise ValueError('Access to private IP addresses is not allowed')
+                # 169.254.0.0/16 (link-local)
+                if a == 169 and b == 254:
+                    raise ValueError('Access to link-local addresses is not allowed')
+                # 127.0.0.0/8 (loopback)
+                if a == 127:
+                    raise ValueError('Access to loopback addresses is not allowed')
+        except socket.gaierror:
+            raise ValueError('Could not resolve hostname')
+
+        return True
+
+    except ValueError:
+        raise
+    except Exception as e:
+        raise ValueError(f'Invalid URL: {str(e)}')
+
+
 @app.route('/health', methods=['GET'])
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -178,6 +235,13 @@ def analyze_image():
             from io import BytesIO
 
             image_url = request.json['image_url']
+
+            # SSRF Protection - validate URL before fetching
+            try:
+                validate_url_ssrf(image_url)
+            except ValueError as e:
+                return jsonify({'error': f'Invalid image URL: {str(e)}'}), 400
+
             response = req.get(image_url, timeout=30)
             response.raise_for_status()
 

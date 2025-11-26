@@ -321,6 +321,97 @@ export class SessionService {
 }
 
 /**
+ * JWT Token Blacklist Service
+ * Used to invalidate tokens on logout before they expire
+ */
+export class TokenBlacklistService {
+  constructor() {
+    this.client = getRedisClient();
+    this.keyPrefix = 'token_blacklist:';
+  }
+
+  /**
+   * Add token to blacklist
+   * @param {string} token - JWT token to blacklist
+   * @param {number} expiresIn - TTL in seconds (should match token expiry)
+   */
+  async blacklistToken(token, expiresIn = 86400) {
+    try {
+      // Use token hash as key to save memory
+      const crypto = await import('crypto');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const key = `${this.keyPrefix}${tokenHash}`;
+
+      await this.client.setEx(key, expiresIn, '1');
+      logger.info('Token blacklisted successfully');
+      return true;
+    } catch (error) {
+      logger.error('Token blacklist error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if token is blacklisted
+   * @param {string} token - JWT token to check
+   * @returns {boolean} - True if blacklisted
+   */
+  async isBlacklisted(token) {
+    try {
+      const crypto = await import('crypto');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const key = `${this.keyPrefix}${tokenHash}`;
+
+      const exists = await this.client.exists(key);
+      return exists === 1;
+    } catch (error) {
+      logger.error('Token blacklist check error:', error);
+      // Fail open - if Redis is down, allow the request
+      return false;
+    }
+  }
+
+  /**
+   * Blacklist all tokens for a user (force logout)
+   * @param {string} userId - User ID
+   * @param {number} expiresIn - TTL in seconds
+   */
+  async blacklistUserTokens(userId, expiresIn = 86400) {
+    try {
+      const key = `${this.keyPrefix}user:${userId}`;
+      const timestamp = Date.now();
+
+      await this.client.setEx(key, expiresIn, timestamp.toString());
+      logger.info(`All tokens blacklisted for user: ${userId}`);
+      return true;
+    } catch (error) {
+      logger.error('User token blacklist error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user's tokens issued before timestamp are blacklisted
+   * @param {string} userId - User ID
+   * @param {number} tokenIssuedAt - Token issued timestamp (in ms)
+   */
+  async isUserTokenBlacklisted(userId, tokenIssuedAt) {
+    try {
+      const key = `${this.keyPrefix}user:${userId}`;
+      const blacklistTime = await this.client.get(key);
+
+      if (!blacklistTime) return false;
+
+      // Token is blacklisted if issued before the blacklist timestamp
+      return tokenIssuedAt < parseInt(blacklistTime);
+    } catch (error) {
+      logger.error('User token blacklist check error:', error);
+      return false;
+    }
+  }
+}
+
+/**
  * Close Redis connection
  */
 export async function closeRedis() {
@@ -331,4 +422,4 @@ export async function closeRedis() {
   }
 }
 
-export default { initRedis, getRedisClient, CacheService, RateLimitService, SessionService, closeRedis };
+export default { initRedis, getRedisClient, CacheService, RateLimitService, SessionService, TokenBlacklistService, closeRedis };

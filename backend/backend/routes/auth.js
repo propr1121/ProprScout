@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import InviteCode from '../models/InviteCode.js';
-import { generateToken, generateRefreshToken, verifyToken, requireAuth } from '../middleware/auth.js';
+import { generateToken, generateRefreshToken, verifyToken, requireAuth, blacklistToken } from '../middleware/auth.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -247,12 +247,17 @@ router.post('/login', authRateLimiter, [
 
 /**
  * POST /api/auth/logout
- * Logout (client-side token invalidation)
+ * Logout - blacklists the token to prevent reuse
  */
 router.post('/logout', requireAuth, async (req, res) => {
   try {
-    // In a JWT-based system, logout is handled client-side by removing the token
-    // Optionally, we could implement a token blacklist here
+    // Blacklist the current token in Redis
+    if (req.token) {
+      const blacklisted = await blacklistToken(req.token);
+      if (blacklisted) {
+        logger.info(`Token blacklisted for user: ${req.user.email}`);
+      }
+    }
 
     logger.info(`User logged out: ${req.user.email}`);
 

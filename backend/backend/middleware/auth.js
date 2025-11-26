@@ -6,6 +6,22 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
+import { TokenBlacklistService } from '../services/redis.js';
+
+// Token blacklist service instance (lazy initialized)
+let tokenBlacklist = null;
+
+function getTokenBlacklist() {
+  if (!tokenBlacklist) {
+    try {
+      tokenBlacklist = new TokenBlacklistService();
+    } catch (error) {
+      logger.warn('Token blacklist not available (Redis not connected)');
+      return null;
+    }
+  }
+  return tokenBlacklist;
+}
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h'; // Default 24 hours for security
@@ -79,6 +95,18 @@ export async function requireAuth(req, res, next) {
       });
     }
 
+    // Check if token is blacklisted (logout security)
+    const blacklist = getTokenBlacklist();
+    if (blacklist) {
+      const isBlacklisted = await blacklist.isBlacklisted(token);
+      if (isBlacklisted) {
+        return res.status(401).json({
+          error: 'Authentication required',
+          message: 'Token has been revoked'
+        });
+      }
+    }
+
     // Get user from database
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -95,9 +123,10 @@ export async function requireAuth(req, res, next) {
       });
     }
 
-    // Attach user to request
+    // Attach user and token to request
     req.user = user;
     req.userId = user._id;
+    req.token = token;
 
     next();
   } catch (error) {
@@ -202,6 +231,20 @@ export function requireSubscription(allowedTypes) {
   };
 }
 
+/**
+ * Blacklist a token (for logout)
+ * @param {string} token - JWT token to blacklist
+ * @returns {boolean} - Success status
+ */
+export async function blacklistToken(token) {
+  const blacklist = getTokenBlacklist();
+  if (blacklist && token) {
+    // Blacklist for 24 hours (matching token expiry)
+    return await blacklist.blacklistToken(token, 86400);
+  }
+  return false;
+}
+
 export default {
   generateToken,
   generateRefreshToken,
@@ -209,5 +252,6 @@ export default {
   requireAuth,
   optionalAuth,
   requireAdmin,
-  requireSubscription
+  requireSubscription,
+  blacklistToken
 };

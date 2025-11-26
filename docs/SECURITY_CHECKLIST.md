@@ -138,14 +138,74 @@
 **Risk:** Long-lived tokens if stolen
 **Recommendation:** Reduce to 24 hours, rely on refresh tokens
 
-### 4. Flask CORS (MEDIUM)
-**Location:** `backend/geolocation/app.py:44`
-**Issue:** `CORS(app)` with no restrictions allows any origin
-**Risk:** Cross-origin requests from malicious sites
-**Recommendation:** Restrict to Node backend only:
-```python
-CORS(app, origins=['http://localhost:3002', 'https://proprscout.com'])
-```
+### 4. Flask CORS (FIXED)
+**Location:** `backend/geolocation/app.py:46-53`
+**Status:** FIXED - CORS now restricted to allowed origins list
+**Evidence:** `CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)`
+
+---
+
+## API Key Security Configuration
+
+### Google Maps API Key Restrictions
+
+**Console URL:** https://console.cloud.google.com/apis/credentials
+
+1. Go to Google Cloud Console > APIs & Services > Credentials
+2. Click on your API key
+3. Under "Application restrictions":
+   - Select "HTTP referrers (websites)"
+   - Add allowed referrers:
+     ```
+     https://proprscout.com/*
+     https://www.proprscout.com/*
+     https://app.proprscout.com/*
+     http://localhost:5000/*  (for development only - remove in production)
+     ```
+4. Under "API restrictions":
+   - Select "Restrict key"
+   - Enable only required APIs:
+     - Maps JavaScript API
+     - Places API
+     - Street View Static API
+     - Geocoding API
+5. Click "Save"
+
+### Mapbox Token Restrictions
+
+**Console URL:** https://account.mapbox.com/access-tokens/
+
+1. Go to Mapbox Account > Access Tokens
+2. Create a new token (or edit existing):
+   - **Name:** ProprScout Production
+   - **Token scopes:**
+     - `styles:read`
+     - `styles:tiles`
+     - `fonts:read`
+     - `datasets:read`
+3. Under "URL restrictions":
+   - Add allowed URLs:
+     ```
+     https://proprscout.com
+     https://www.proprscout.com
+     https://app.proprscout.com
+     ```
+4. For development, create a separate token with localhost allowed
+5. Click "Create token" / "Update"
+
+### Token Type Best Practices
+
+| Environment | Google Maps | Mapbox |
+|------------|-------------|--------|
+| Development | Unrestricted (local only) | `pk.*` public token |
+| Production | Domain-restricted | `pk.*` with URL restrictions |
+| Server-side | IP-restricted | `sk.*` secret token (never expose) |
+
+**Important:**
+- Never commit API keys to git (use `.env` files)
+- Rotate keys if compromised
+- Set up billing alerts in both dashboards
+- Monitor usage for anomalies
 
 ---
 
