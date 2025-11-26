@@ -3,7 +3,7 @@
  * Used as a backup when primary scraping methods fail
  */
 
-const FIRECRAWL_API_KEY = 'fc-226de18402264e69afae0e914ffb728d';
+const FIRECRAWL_API_KEY = import.meta.env.VITE_FIRECRAWL_API_KEY || '';
 const FIRECRAWL_API_URL = 'https://api.firecrawl.dev/v0/scrape';
 
 // Dynamic import to avoid circular dependencies

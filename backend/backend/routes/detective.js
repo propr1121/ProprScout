@@ -14,6 +14,7 @@ import { reverseGeocode } from '../services/nominatim.js';
 import { CacheService } from '../services/redis.js';
 import logger from '../utils/logger.js';
 import { notifyAnalysisComplete, checkLowCreditsAndNotify } from '../utils/notifications.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -36,8 +37,9 @@ const upload = multer({
 /**
  * POST /api/detective/analyze
  * Analyze property image with advanced AI
+ * Requires authentication - uses authenticated user ID
  */
-router.post('/analyze', upload.single('image'), async (req, res) => {
+router.post('/analyze', requireAuth, upload.single('image'), async (req, res) => {
   try {
     // Validate request
     if (!req.file) {
@@ -47,8 +49,9 @@ router.post('/analyze', upload.single('image'), async (req, res) => {
       });
     }
 
-    const { user_id = 'anonymous' } = req.body;
-    
+    // Use authenticated user ID instead of body parameter (security fix)
+    const user_id = req.user._id.toString();
+
     logger.info(`🔍 Property Detective analysis for user: ${user_id}`);
 
     // Check user quota
@@ -182,11 +185,12 @@ router.post('/analyze', upload.single('image'), async (req, res) => {
 /**
  * GET /api/detective/quota
  * Get user's remaining analyses
+ * Requires authentication
  */
-router.get('/quota', async (req, res) => {
+router.get('/quota', requireAuth, async (req, res) => {
   try {
-    const { user_id = 'anonymous' } = req.query;
-    
+    const user_id = req.user._id.toString();
+
     const quota = await checkUserQuota(user_id);
     
     res.json({
@@ -207,20 +211,18 @@ router.get('/quota', async (req, res) => {
 /**
  * GET /api/detective/history
  * Get user's analysis history
+ * Requires authentication - returns only the authenticated user's analyses
  */
-router.get('/history', async (req, res) => {
+router.get('/history', requireAuth, async (req, res) => {
   try {
-    const { 
-      user_id = 'anonymous',
+    const user_id = req.user._id.toString();
+    const {
       limit = 10,
       offset = 0
     } = req.query;
 
-    // Handle anonymous users - query all analyses for now
-    // In production, you'd want to filter by actual user_id
-    const query = user_id === 'anonymous' || !user_id 
-      ? {} // Return all analyses for anonymous users
-      : { user_id };
+    // Only return authenticated user's analyses (security fix)
+    const query = { user_id };
 
     const analyses = await DetectiveAnalysis.find(query)
       .sort({ created_at: -1 })

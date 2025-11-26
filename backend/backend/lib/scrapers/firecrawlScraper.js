@@ -5,7 +5,7 @@
 
 import { extractPropertyData } from './browserScraper.js';
 
-const FIRECRAWL_API_KEY = 'fc-226de18402264e69afae0e914ffb728d';
+const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || '';
 const FIRECRAWL_API_URL = 'https://api.firecrawl.dev/v0/scrape';
 
 /**

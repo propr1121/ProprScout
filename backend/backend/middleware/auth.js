@@ -7,8 +7,13 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'proprscout-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Fail fast if JWT_SECRET is not configured
+if (!JWT_SECRET) {
+  throw new Error('CRITICAL: JWT_SECRET environment variable is required');
+}
 
 /**
  * Generate JWT token for user

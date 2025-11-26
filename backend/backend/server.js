@@ -68,9 +68,30 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
+// CORS configuration - supports multiple origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'https://proprscout.com',
+  'https://www.proprscout.com',
+  'https://app.proprscout.com'
+].filter(Boolean);
+
+// Add localhost for development
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000');
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

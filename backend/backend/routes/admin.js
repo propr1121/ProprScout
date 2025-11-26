@@ -12,6 +12,11 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
+// Escape regex special characters to prevent ReDoS attacks
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // All admin routes require authentication and admin privileges
 router.use(requireAuth);
 router.use(requireAdmin);
@@ -157,9 +162,10 @@ router.get('/users', [
     const query = {};
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } }
       ];
     }
 
