@@ -851,6 +851,25 @@ function Dashboard() {
                             <div className="text-xs text-slate-500">Language, notifications & preferences</div>
                           </div>
                         </button>
+                        
+                        <div className="border-t border-slate-200 my-2"></div>
+                        
+                        <button
+                          onClick={async () => {
+                            setProfileMenuOpen(false);
+                            await logout();
+                            navigate('/');
+                          }}
+                          className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-red-50 transition-colors group"
+                        >
+                          <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-red-100 transition-colors">
+                            <LogOut className="w-4 h-4 text-slate-600 group-hover:text-red-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-900 group-hover:text-red-600">Logout</div>
+                            <div className="text-xs text-slate-500">Sign out of your account</div>
+                          </div>
+                        </button>
                       </div>
                     </div>
                   </>
