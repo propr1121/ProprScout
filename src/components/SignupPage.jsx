@@ -1,6 +1,7 @@
 /**
  * Signup Page Component
  * Supports email/password registration with invite code and SSO
+ * Updated to follow ProprScout Design System
  */
 
 import React, { useState, useEffect } from 'react';
@@ -153,28 +154,35 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
 
   const passwordStrength = getPasswordStrength();
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
+  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-20 w-32 h-32 border border-emerald-200/30 rotate-45 animate-pulse" />
+        <div className="absolute top-40 right-32 w-24 h-24 border border-emerald-300/20 rotate-12 animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 border border-emerald-100/40 rotate-90 animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Back button */}
         <button
           onClick={step === 2 ? () => setStep(1) : onBack}
-          className="mb-6 flex items-center text-gray-400 hover:text-white transition-colors"
+          className="mb-6 flex items-center text-gray-500 hover:text-gray-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           {step === 2 ? 'Back' : 'Back to Home'}
         </button>
 
         {/* Card */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-8 shadow-2xl">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 p-8 shadow-xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 font-heading mb-2">
               {step === 1 ? 'Create Account' : 'Almost There!'}
             </h1>
-            <p className="text-gray-400">
+            <p className="text-gray-600">
               {step === 1
                 ? 'Join ProprScout and start analyzing properties'
                 : 'Add some optional details about yourself'}
@@ -183,20 +191,20 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
 
           {/* Step indicator */}
           <div className="flex items-center justify-center mb-6 space-x-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 1 ? 'bg-amber-500 text-white' : 'bg-gray-700 text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
               {step > 1 ? <CheckCircle className="w-5 h-5" /> : '1'}
             </div>
-            <div className={`w-12 h-1 ${step > 1 ? 'bg-amber-500' : 'bg-gray-700'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 2 ? 'bg-amber-500 text-white' : 'bg-gray-700 text-gray-400'}`}>
+            <div className={`w-12 h-1 ${step > 1 ? 'bg-emerald-500' : 'bg-gray-200'}`}></div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
               2
             </div>
           </div>
 
           {/* Error Alert */}
           {(formError || error) && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-400 mr-3 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm">{formError || error}</p>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start animate-in slide-in-from-top-2">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+              <p className="text-red-600 text-sm">{formError || error}</p>
             </div>
           )}
 
@@ -206,15 +214,15 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
               <div className="space-y-3 mb-6">
                 <button
                   onClick={handleGoogleSignup}
-                  className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-100 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors shadow-sm"
                 >
                   <GoogleIcon />
-                  <span className="ml-3 text-gray-800 font-medium">Sign up with Google</span>
+                  <span className="ml-3 text-gray-700 font-medium">Sign up with Google</span>
                 </button>
 
                 <button
                   onClick={handleLinkedInSignup}
-                  className="w-full flex items-center justify-center px-4 py-3 bg-[#0A66C2] hover:bg-[#004182] rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center px-4 py-3 bg-[#0A66C2] hover:bg-[#004182] rounded-lg transition-colors shadow-sm"
                 >
                   <LinkedInIcon />
                   <span className="ml-3 text-white font-medium">Sign up with LinkedIn</span>
@@ -223,68 +231,68 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
 
               {/* Divider */}
               <div className="flex items-center my-6">
-                <div className="flex-1 border-t border-gray-700"></div>
-                <span className="px-4 text-gray-500 text-sm">or</span>
-                <div className="flex-1 border-t border-gray-700"></div>
+                <div className="flex-1 border-t border-gray-200"></div>
+                <span className="px-4 text-gray-400 text-sm">or</span>
+                <div className="flex-1 border-t border-gray-200"></div>
               </div>
 
               {/* Step 1 Form */}
               <form onSubmit={handleStep1Submit} className="space-y-5">
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Full name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="John Doe"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="you@example.com"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Min. 8 characters"
-                      className="w-full pl-10 pr-12 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -296,7 +304,7 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
                         {[...Array(5)].map((_, i) => (
                           <div
                             key={i}
-                            className={`h-1 flex-1 rounded-full ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-700'}`}
+                            className={`h-1 flex-1 rounded-full ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200'}`}
                           />
                         ))}
                       </div>
@@ -309,23 +317,23 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Confirm your password"
-                      className="w-full pl-10 pr-12 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -335,7 +343,7 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
                 {/* Continue Button */}
                 <button
                   type="submit"
-                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center shadow-lg shadow-emerald-500/25"
                 >
                   Continue
                 </button>
@@ -347,58 +355,58 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Company (optional) */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Company <span className="text-gray-500">(optional)</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Company <span className="text-gray-400">(optional)</span>
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
                     name="company"
                     value={formData.company}
                     onChange={handleChange}
                     placeholder="Your company name"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                   />
                 </div>
               </div>
 
               {/* Location (optional) */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Location <span className="text-gray-500">(optional)</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location <span className="text-gray-400">(optional)</span>
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
                     placeholder="City, Country"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                   />
                 </div>
               </div>
 
               {/* Invite Code */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Invite code <span className="text-gray-500">(if you have one)</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Invite code <span className="text-gray-400">(required for beta)</span>
                 </label>
                 <div className="relative">
-                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
                     name="inviteCode"
                     value={formData.inviteCode}
                     onChange={handleChange}
                     placeholder="Enter invite code"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  Using an invite code gives you +1 bonus analysis
+                  Using an invite code gives you bonus credits
                 </p>
               </div>
 
@@ -406,7 +414,7 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
               <button
                 type="submit"
                 disabled={isSubmitting || loading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-emerald-500/25"
               >
                 {(isSubmitting || loading) ? (
                   <>
@@ -422,7 +430,7 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
+                className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm transition-colors"
               >
                 Skip for now
               </button>
@@ -430,11 +438,11 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
           )}
 
           {/* Sign In Link */}
-          <p className="mt-6 text-center text-gray-400">
+          <p className="mt-6 text-center text-gray-600">
             Already have an account?{' '}
             <button
               onClick={onSwitchToLogin}
-              className="text-amber-500 hover:text-amber-400 font-medium transition-colors"
+              className="text-emerald-600 hover:text-emerald-700 font-semibold transition-colors"
             >
               Sign in
             </button>
@@ -444,8 +452,8 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
         {/* Beta Notice */}
         <p className="mt-6 text-center text-gray-500 text-sm">
           ProprScout is currently in beta. By creating an account, you agree to our{' '}
-          <a href="#" className="text-amber-500 hover:underline">Terms</a> and{' '}
-          <a href="#" className="text-amber-500 hover:underline">Privacy Policy</a>.
+          <a href="#" className="text-emerald-600 hover:underline">Terms</a> and{' '}
+          <a href="#" className="text-emerald-600 hover:underline">Privacy Policy</a>.
         </p>
       </div>
     </div>

@@ -1,6 +1,7 @@
 /**
  * Login Page Component
  * Supports email/password and SSO login
+ * Updated to follow ProprScout Design System
  */
 
 import React, { useState, useEffect } from 'react';
@@ -91,30 +92,37 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-20 w-32 h-32 border border-emerald-200/30 rotate-45 animate-pulse" />
+        <div className="absolute top-40 right-32 w-24 h-24 border border-emerald-300/20 rotate-12 animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 border border-emerald-100/40 rotate-90 animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Back button */}
         <button
           onClick={onBack}
-          className="mb-6 flex items-center text-gray-400 hover:text-white transition-colors"
+          className="mb-6 flex items-center text-gray-500 hover:text-gray-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </button>
 
         {/* Card */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-8 shadow-2xl">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 p-8 shadow-xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to your ProprScout account</p>
+            <h1 className="text-3xl font-bold text-gray-900 font-heading mb-2">Welcome Back</h1>
+            <p className="text-gray-600">Sign in to your ProprScout account</p>
           </div>
 
           {/* Error Alert */}
           {(formError || error) && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-400 mr-3 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm">{formError || error}</p>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start animate-in slide-in-from-top-2">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+              <p className="text-red-600 text-sm">{formError || error}</p>
             </div>
           )}
 
@@ -122,15 +130,15 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
           <div className="space-y-3 mb-6">
             <button
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-100 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors shadow-sm"
             >
               <GoogleIcon />
-              <span className="ml-3 text-gray-800 font-medium">Continue with Google</span>
+              <span className="ml-3 text-gray-700 font-medium">Continue with Google</span>
             </button>
 
             <button
               onClick={handleLinkedInLogin}
-              className="w-full flex items-center justify-center px-4 py-3 bg-[#0A66C2] hover:bg-[#004182] rounded-lg transition-colors"
+              className="w-full flex items-center justify-center px-4 py-3 bg-[#0A66C2] hover:bg-[#004182] rounded-lg transition-colors shadow-sm"
             >
               <LinkedInIcon />
               <span className="ml-3 text-white font-medium">Continue with LinkedIn</span>
@@ -139,50 +147,50 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
 
           {/* Divider */}
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-700"></div>
-            <span className="px-4 text-gray-500 text-sm">or</span>
-            <div className="flex-1 border-t border-gray-700"></div>
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-gray-400 text-sm">or</span>
+            <div className="flex-1 border-t border-gray-200"></div>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                  className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -193,7 +201,7 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-amber-500 hover:text-amber-400 transition-colors"
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
               >
                 Forgot password?
               </button>
@@ -203,7 +211,7 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-emerald-500/25"
             >
               {(isSubmitting || loading) ? (
                 <>
@@ -217,11 +225,11 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
           </form>
 
           {/* Sign Up Link */}
-          <p className="mt-6 text-center text-gray-400">
+          <p className="mt-6 text-center text-gray-600">
             Don't have an account?{' '}
             <button
               onClick={onSwitchToSignup}
-              className="text-amber-500 hover:text-amber-400 font-medium transition-colors"
+              className="text-emerald-600 hover:text-emerald-700 font-semibold transition-colors"
             >
               Create account
             </button>
@@ -231,8 +239,8 @@ export default function LoginPage({ onBack, onSwitchToSignup, onSuccess }) {
         {/* Beta Notice */}
         <p className="mt-6 text-center text-gray-500 text-sm">
           ProprScout is currently in beta. By signing in, you agree to our{' '}
-          <a href="#" className="text-amber-500 hover:underline">Terms</a> and{' '}
-          <a href="#" className="text-amber-500 hover:underline">Privacy Policy</a>.
+          <a href="#" className="text-emerald-600 hover:underline">Terms</a> and{' '}
+          <a href="#" className="text-emerald-600 hover:underline">Privacy Policy</a>.
         </p>
       </div>
     </div>
