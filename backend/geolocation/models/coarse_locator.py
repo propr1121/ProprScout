@@ -86,7 +86,7 @@ class CoarseLocator:
                         'lon': float(top_pred[0]['lon']),
                         'confidence': float(top_pred[0]['confidence']),
                         'top_k': [
-                            {'lat': p['lat'], 'lon': p['lon'], 'confidence': p['confidence']}
+                            {'lat': float(p['lat']), 'lon': float(p['lon']), 'confidence': float(p['confidence'])}
                             for p in top_pred
                         ],
                         'source': 'geoclip'

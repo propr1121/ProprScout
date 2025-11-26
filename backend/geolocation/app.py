@@ -7,11 +7,26 @@ Flask application serving the hybrid geolocation pipeline
 import os
 import sys
 import logging
+import json
 from pathlib import Path
 from flask import Flask, request, jsonify
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS
 import tempfile
 import traceback
+import numpy as np
+
+
+class NumpyJSONProvider(DefaultJSONProvider):
+    """Custom JSON provider that handles numpy types"""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -25,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 # Flask app
 app = Flask(__name__)
+app.json = NumpyJSONProvider(app)
 CORS(app)
 
 # Configuration
