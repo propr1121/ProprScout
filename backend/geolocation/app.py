@@ -41,7 +41,16 @@ logger = logging.getLogger(__name__)
 # Flask app
 app = Flask(__name__)
 app.json = NumpyJSONProvider(app)
-CORS(app)
+
+# CORS - restrict to Node backend and production frontend only
+ALLOWED_ORIGINS = [
+    'http://localhost:3002',  # Node backend in dev
+    'http://localhost:3000',  # Frontend in dev
+    'https://proprscout.com',
+    'https://www.proprscout.com',
+    'https://app.proprscout.com'
+]
+CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload

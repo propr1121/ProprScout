@@ -5,6 +5,7 @@
 
 import express from 'express';
 import passport from 'passport';
+import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import InviteCode from '../models/InviteCode.js';
@@ -19,11 +20,36 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 // Beta mode - require invite codes
 const REQUIRE_INVITE_CODE = process.env.REQUIRE_INVITE_CODE !== 'false'; // Default to true
 
+// Strict rate limiting for authentication endpoints (brute force protection)
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: {
+    error: 'Too many authentication attempts',
+    message: 'Please try again in 15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true // Only count failed attempts
+});
+
+// Slightly more permissive for registration (still strict)
+const registrationRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 registration attempts per hour
+  message: {
+    error: 'Too many registration attempts',
+    message: 'Please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 /**
  * POST /api/auth/register
  * Register new user with email/password
  */
-router.post('/register', [
+router.post('/register', registrationRateLimiter, [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
@@ -147,7 +173,7 @@ router.post('/register', [
  * POST /api/auth/login
  * Login with email/password
  */
-router.post('/login', [
+router.post('/login', authRateLimiter, [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res, next) => {
