@@ -9,7 +9,13 @@ const MapboxMap = ({ coordinates, address, confidence }) => {
   useEffect(() => {
     if (map.current) return; // initialize map only once
 
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+    // SECURITY: API key must come from environment variable - no hardcoded fallbacks
+    const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!accessToken) {
+      console.error('VITE_MAPBOX_TOKEN not configured. Map will not load.');
+      return;
+    }
+    mapboxgl.accessToken = accessToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
