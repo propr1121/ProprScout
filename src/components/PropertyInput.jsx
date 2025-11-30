@@ -41,7 +41,7 @@ export default function PropertyInput({ onAnalyze, loading, error }) {
         <Link2 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
         <input
           type="text"
-          placeholder="https://www.idealista.pt/imovel/33456789/"
+          placeholder="Paste property listing URL here..."
           className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
@@ -81,17 +81,11 @@ export default function PropertyInput({ onAnalyze, loading, error }) {
         )}
       </button>
 
-      {/* Supported Portals Section */}
+      {/* Info Section */}
       <div className="border-t border-gray-200 mt-6 pt-6">
-        <p className="text-sm text-gray-500 mb-3">Supported Portuguese property portals:</p>
-        <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">idealista.pt</span>
-          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">imovirtual.com</span>
-          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">supercasa.pt</span>
-          <span className="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full font-medium">casa.sapo.pt</span>
-        </div>
-        <p className="text-xs text-gray-400 mt-3">
-          Paste any property listing URL from these portals to get instant AI-powered analysis.
+        <p className="text-sm text-gray-500 mb-2">How it works:</p>
+        <p className="text-xs text-gray-400">
+          Paste any property listing URL to get instant AI-powered analysis including market insights, location intelligence, and investment potential.
         </p>
       </div>
 

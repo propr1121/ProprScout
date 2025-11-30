@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowRight, Sparkles, TrendingUp, Menu, X, CheckCircle, Camera, Download, Settings, CreditCard, History, Plus, BarChart3, MapPin, User, Bell, Search, Image, Zap, Shield, Globe, Users, Key, FileText, Filter, Calendar, Target, Award, Activity, PieChart, TrendingDown, Clock, Star, AlertCircle, CheckCircle2, ScanSearch, Navigation2, ChevronDown, ChevronUp, Home, Building2, LogOut } from 'lucide-react'
+import { ArrowRight, Sparkles, TrendingUp, Menu, X, CheckCircle, Camera, Download, Settings, CreditCard, History, Plus, BarChart3, MapPin, User, Bell, Search, Image, Zap, Shield, Globe, Users, Key, FileText, Filter, Calendar, Target, Award, Activity, PieChart, TrendingDown, Clock, Star, AlertCircle, CheckCircle2, ScanSearch, Navigation2, ChevronDown, ChevronUp, Home, Building2, LogOut, Crown } from 'lucide-react'
 import PropertyInput from './components/PropertyInput'
 import PropertyResults from './components/PropertyResults'
 import PropertyDetective from './components/PropertyDetective'
@@ -176,6 +176,37 @@ function AdminDashboardRoute() {
       onBack={() => navigate('/dashboard')}
     />
   );
+}
+
+// Protected Route wrapper - redirects to login if not authenticated
+function ProtectedRoute({ children }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render protected content if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return children;
 }
 
 function ListingAnalysisRoute() {
@@ -601,7 +632,7 @@ function Dashboard() {
 
             {/* User Info & Actions */}
             <div className="flex items-center gap-4">
-              {/* Credits Display */}
+              {/* Propr Points Display */}
               <button
                 onClick={() => {
                   setCreditsModalOpen(true);
@@ -615,8 +646,8 @@ function Dashboard() {
                 }}
                 className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm hover:bg-slate-100 hover:border-primary-300 transition-all cursor-pointer group"
               >
-                <Sparkles className="w-4 h-4 text-primary-600 group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-semibold text-slate-700 group-hover:text-primary-600 transition-colors">{userCredits} Credits</span>
+                <img src="/coin-prp.svg" alt="Propr Points" className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-primary-600 transition-colors">{userCredits} Points</span>
                 <div className="w-2 h-2 bg-primary-500 rounded-full group-hover:bg-primary-600 transition-colors"></div>
               </button>
 
@@ -796,11 +827,11 @@ function Dashboard() {
                           className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition-colors group"
                         >
                           <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-primary-100 transition-colors">
-                            <Sparkles className="w-4 h-4 text-slate-600 group-hover:text-primary-600" />
+                            <img src="/coin-prp.svg" alt="Propr Points" className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-900">Credits & Usage</div>
-                            <div className="text-xs text-slate-500">{userCredits} credits available</div>
+                            <div className="text-sm font-medium text-slate-900">Propr Points</div>
+                            <div className="text-xs text-slate-500">{userCredits} points available</div>
                           </div>
                         </button>
                         
@@ -1026,11 +1057,12 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Premium Upgrade Section */}
+        {/* Premium Upgrade Section - Only show for free tier users */}
+        {(!user?.subscription?.type || user.subscription.type === 'free') ? (
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-50/40 via-white to-primary-50/20 rounded-2xl shadow-lg border border-primary-100/50 p-6 mb-8">
           {/* Subtle decorative background */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary-200/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-          
+
           <div className="relative z-10 flex flex-col lg:flex-row items-start justify-between gap-6">
             {/* Left: Title and Benefits */}
             <div className="flex-1 w-full">
@@ -1040,10 +1072,10 @@ function Dashboard() {
                   <div className="text-xs font-bold text-amber-700 uppercase tracking-wide mr-2">Current Plan</div>
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 rounded-lg p-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <img src="/coin-prp.svg" alt="Propr Points" className="w-4 h-4" />
                 </div>
                 <div>
-                      <div className="text-xs font-bold text-slate-900">Free Tier: 15 Credits</div>
+                      <div className="text-xs font-bold text-slate-900">Free Tier: 15 Points</div>
                       <div className="text-xs text-slate-600">3 Analyses • Refreshed Monthly</div>
                     </div>
                   </div>
@@ -1190,6 +1222,46 @@ function Dashboard() {
             </div>
           </div>
         </div>
+        ) : (
+        /* Premium User Status Section */
+        <div className="relative overflow-hidden bg-gradient-to-br from-primary-50/40 via-white to-primary-50/20 rounded-2xl shadow-lg border border-primary-100/50 p-6 mb-8">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-200/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-primary-200 rounded-xl blur-sm opacity-40"></div>
+                <div className="relative bg-gradient-to-br from-primary-500 to-primary-600 p-3 rounded-xl shadow-md">
+                  <Crown className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold text-slate-900 font-heading">
+                    {user?.subscription?.type === 'annual' ? 'Annual Premium' : 'Premium'} Plan
+                  </h3>
+                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                    <CheckCircle className="w-3 h-3" />
+                    Active
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600">
+                  Unlimited analyses and all premium features unlocked
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/dashboard/payment')}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Manage Subscription
+              </button>
+            </div>
+          </div>
+        </div>
+        )}
 
         {/* Premium Analysis History */}
         <div id="recent-analyses" className="bg-white rounded-2xl shadow-sm border border-slate-200">
@@ -1267,7 +1339,7 @@ function Dashboard() {
                       </div>
                       <div className="text-left min-w-0 flex-1">
                         <div className="text-sm font-semibold text-slate-900 mb-1">URL Analysis</div>
-                        <div className="text-xs text-slate-600 leading-relaxed">Analyze property listings from Portuguese portals</div>
+                        <div className="text-xs text-slate-600 leading-relaxed">Analyze property listings with AI intelligence</div>
                       </div>
                     </div>
                     
@@ -1358,7 +1430,7 @@ function Dashboard() {
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-4 ml-4">
                       <div className="text-right hidden sm:block">
-                        <div className="text-sm font-medium text-slate-700">{analysis.credits} credits</div>
+                        <div className="text-sm font-medium text-slate-700">{analysis.credits} points</div>
                         <div className="text-xs text-slate-500">Used</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1477,18 +1549,18 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Credits Info Modal */}
+        {/* Propr Points Info Modal */}
         {creditsModalOpen && (
           <>
             {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" 
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
               onClick={() => setCreditsModalOpen(false)}
             ></div>
-            
+
             {/* Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-              <div 
+              <div
                 className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-y-auto pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1496,11 +1568,11 @@ function Dashboard() {
                 <div className="bg-gradient-to-r from-primary-50 to-white px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-2 rounded-lg shadow-md">
-                      <Sparkles className="w-5 h-5 text-white" />
+                      <img src="/coin-prp.svg" alt="Propr Points" className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 font-heading">Credits & Usage</h3>
-                      <p className="text-xs text-slate-600">Understand your credit system</p>
+                      <h3 className="text-lg font-bold text-slate-900 font-heading">Propr Points</h3>
+                      <p className="text-xs text-slate-600">Understand your points system</p>
                     </div>
                   </div>
                   <button
@@ -1518,7 +1590,10 @@ function Dashboard() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <div className="text-xs text-slate-600 mb-1">Current Balance</div>
-                        <div className="text-3xl font-bold text-slate-900 font-heading">{userCredits} Credits</div>
+                        <div className="text-3xl font-bold text-slate-900 font-heading flex items-center gap-2">
+                          <img src="/coin-prp.svg" alt="" className="w-7 h-7" />
+                          {userCredits} Points
+                        </div>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-slate-600 mb-1">Remaining Actions</div>
@@ -1526,7 +1601,7 @@ function Dashboard() {
                       </div>
                     </div>
                     <div className="text-xs text-slate-500">
-                      Each analysis costs 5 credits • Free tier: 15 credits/month (3 analyses)
+                      Each analysis costs 5 points • Free tier: 15 points/month (3 analyses)
                       {nextRechargeDate && (
                         <div className="mt-1 text-xs text-slate-400">
                           Next recharge: {nextRechargeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -1543,14 +1618,14 @@ function Dashboard() {
                       <div className="border-2 border-slate-200 rounded-xl p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="bg-slate-100 rounded-lg p-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-slate-600" />
+                            <img src="/coin-prp.svg" alt="" className="w-3.5 h-3.5" />
                           </div>
                           <h5 className="font-bold text-sm text-slate-900">Free Tier</h5>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                            <span className="text-xs text-slate-700">15 credits/month</span>
+                            <span className="text-xs text-slate-700">15 points/month</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <CheckCircle className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
@@ -1604,21 +1679,21 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Credit Costs */}
+                  {/* Point Costs */}
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                    <h4 className="text-base font-bold text-slate-900 font-heading mb-3">Credit Costs</h4>
+                    <h4 className="text-base font-bold text-slate-900 font-heading mb-3">Point Costs</h4>
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between py-1.5 border-b border-slate-200">
                         <span className="text-xs text-slate-700">Property Listing Analysis</span>
-                        <span className="text-xs font-semibold text-slate-900">5 credits</span>
+                        <span className="text-xs font-semibold text-slate-900">5 points</span>
                       </div>
                       <div className="flex items-center justify-between py-1.5 border-b border-slate-200">
                         <span className="text-xs text-slate-700">Photo Location Search</span>
-                        <span className="text-xs font-semibold text-slate-900">5 credits</span>
+                        <span className="text-xs font-semibold text-slate-900">5 points</span>
                       </div>
                       <div className="flex items-center justify-between py-1.5">
                         <span className="text-xs text-slate-700">Export Report</span>
-                        <span className="text-xs font-semibold text-slate-900">2 credits</span>
+                        <span className="text-xs font-semibold text-slate-900">2 points</span>
                       </div>
                     </div>
                   </div>
@@ -1787,14 +1862,14 @@ function App() {
       <Route path="/login" element={<LoginPageRoute />} />
       <Route path="/signup" element={<SignupPageRoute />} />
       <Route path="/auth/callback" element={<AuthCallbackRoute />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/dashboard/payment" element={<PaymentPageRoute />} />
-      <Route path="/dashboard/credits" element={<CreditsPageRoute />} />
-      <Route path="/dashboard/account" element={<AccountPageRoute />} />
-      <Route path="/dashboard/settings" element={<SettingsPageRoute />} />
-      <Route path="/dashboard/listing-analysis" element={<ListingAnalysisRoute />} />
-      <Route path="/dashboard/photo-location-search" element={<PhotoLocationSearchRoute />} />
-      <Route path="/admin" element={<AdminDashboardRoute />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/dashboard/payment" element={<ProtectedRoute><PaymentPageRoute /></ProtectedRoute>} />
+      <Route path="/dashboard/credits" element={<ProtectedRoute><CreditsPageRoute /></ProtectedRoute>} />
+      <Route path="/dashboard/account" element={<ProtectedRoute><AccountPageRoute /></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPageRoute /></ProtectedRoute>} />
+      <Route path="/dashboard/listing-analysis" element={<ProtectedRoute><ListingAnalysisRoute /></ProtectedRoute>} />
+      <Route path="/dashboard/photo-location-search" element={<ProtectedRoute><PhotoLocationSearchRoute /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><AdminDashboardRoute /></ProtectedRoute>} />
     </Routes>
   );
 }

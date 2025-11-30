@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Sparkles, Zap, TrendingUp, Clock, Calendar, CreditCard, History } from 'lucide-react';
+import { ArrowLeft, Zap, TrendingUp, Clock, Calendar, CreditCard, History } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
@@ -48,11 +48,11 @@ function CreditsPage({ onBack }) {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          // Transform history to show credit usage
+          // Transform history to show point usage
           const history = result.data.analyses?.map((analysis, index) => ({
             id: analysis._id || `usage-${index}`,
             type: 'Photo Location Search',
-            creditsUsed: 5,
+            pointsUsed: 5,
             date: new Date(analysis.created_at),
             address: analysis.address?.formatted || 'Unknown location'
           })) || [];
@@ -78,22 +78,22 @@ function CreditsPage({ onBack }) {
           </button>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
-              <Sparkles className="w-6 h-6 text-white" />
+              <img src="/coin-prp.svg" alt="Propr Points" className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 font-heading">Credits & Usage</h1>
-              <p className="text-slate-600">Manage your credits and view usage history</p>
+              <h1 className="text-3xl font-bold text-slate-900 font-heading">Propr Points</h1>
+              <p className="text-slate-600">Manage your points and view usage history</p>
             </div>
           </div>
         </div>
 
-        {/* Credits Overview */}
+        {/* Points Overview */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 font-heading mb-6">Credits Overview</h2>
-          
+          <h2 className="text-xl font-bold text-slate-900 font-heading mb-6">Points Overview</h2>
+
           {loading ? (
             <div className="text-center py-8">
-              <div className="text-slate-500">Loading credits...</div>
+              <div className="text-slate-500">Loading points...</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -101,9 +101,9 @@ function CreditsPage({ onBack }) {
               <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl p-6 border border-primary-200">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-primary-500 rounded-lg">
-                    <Sparkles className="w-5 h-5 text-white" />
+                    <img src="/coin-prp.svg" alt="" className="w-5 h-5" />
                   </div>
-                  <div className="text-sm font-medium text-slate-600">Available Credits</div>
+                  <div className="text-sm font-medium text-slate-600">Available Points</div>
                 </div>
                 <div className="text-4xl font-bold text-slate-900 font-heading mb-2">{credits.balance}</div>
                 <div className="text-sm text-slate-600">
@@ -120,7 +120,7 @@ function CreditsPage({ onBack }) {
                   <div className="text-sm font-medium text-slate-600">Total Earned</div>
                 </div>
                 <div className="text-4xl font-bold text-slate-900 font-heading mb-2">{credits.totalEarned}</div>
-                <div className="text-sm text-slate-600">All time credits</div>
+                <div className="text-sm text-slate-600">All time points</div>
               </div>
 
               {/* Total Spent */}
@@ -132,7 +132,7 @@ function CreditsPage({ onBack }) {
                   <div className="text-sm font-medium text-slate-600">Total Used</div>
                 </div>
                 <div className="text-4xl font-bold text-slate-900 font-heading mb-2">{credits.totalSpent}</div>
-                <div className="text-sm text-slate-600">Credits spent</div>
+                <div className="text-sm text-slate-600">Points spent</div>
               </div>
             </div>
           )}
@@ -150,10 +150,10 @@ function CreditsPage({ onBack }) {
                 <div className="flex-1">
                   <div className="text-sm font-medium text-slate-600 mb-1">Next Recharge</div>
                   <div className="text-lg font-bold text-slate-900">
-                    {credits.nextRechargeDate.toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
+                    {credits.nextRechargeDate.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
                     })}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">
@@ -170,14 +170,14 @@ function CreditsPage({ onBack }) {
                   <div className="flex-1">
                     <div className="text-sm font-medium text-slate-600 mb-1">Last Recharge</div>
                     <div className="text-lg font-bold text-slate-900">
-                      {credits.lastRechargeDate.toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
+                      {credits.lastRechargeDate.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
                       })}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
-                      +15 credits added
+                      +15 points added
                     </div>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ function CreditsPage({ onBack }) {
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="p-2 bg-primary-100 rounded-lg flex-shrink-0">
-                      <Zap className="w-4 h-4 text-primary-600" />
+                      <img src="/coin-prp.svg" alt="" className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-slate-900">{item.type}</div>
@@ -219,12 +219,12 @@ function CreditsPage({ onBack }) {
                   </div>
                   <div className="flex items-center gap-4 text-right">
                     <div>
-                      <div className="text-sm font-bold text-slate-900">-{item.creditsUsed}</div>
-                      <div className="text-xs text-slate-500">credits</div>
+                      <div className="text-sm font-bold text-slate-900">-{item.pointsUsed}</div>
+                      <div className="text-xs text-slate-500">points</div>
                     </div>
                     <div className="text-xs text-slate-500 min-w-[100px]">
-                      {item.date.toLocaleDateString('en-US', { 
-                        month: 'short', 
+                      {item.date.toLocaleDateString('en-US', {
+                        month: 'short',
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
@@ -242,7 +242,7 @@ function CreditsPage({ onBack }) {
           <div className="mt-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl shadow-lg p-8 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold font-heading mb-2">Running Low on Credits?</h3>
+                <h3 className="text-xl font-bold font-heading mb-2">Running Low on Points?</h3>
                 <p className="text-primary-100 mb-4">
                   Upgrade to Premium for unlimited analyses and advanced features
                 </p>
@@ -266,4 +266,3 @@ function CreditsPage({ onBack }) {
 }
 
 export default CreditsPage;
-
