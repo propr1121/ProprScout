@@ -5,16 +5,20 @@
 import express from 'express';
 import Notification from '../models/Notification.js';
 import logger from '../utils/logger.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * GET /api/notifications
  * Get user notifications
+ * Uses JWT auth if available, falls back to anonymous for demo access
  */
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { user_id = 'anonymous', limit = 20, unread_only = false } = req.query;
+    // Use authenticated user ID if available, otherwise 'anonymous' for demo
+    const user_id = req.userId?.toString() || 'anonymous';
+    const { limit = 20, unread_only = false } = req.query;
     
     const query = { user_id };
     if (unread_only === 'true') {
@@ -59,10 +63,10 @@ router.get('/', async (req, res) => {
  * PUT /api/notifications/:id/read
  * Mark notification as read
  */
-router.put('/:id/read', async (req, res) => {
+router.put('/:id/read', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id = 'anonymous' } = req.query;
+    const user_id = req.userId?.toString() || 'anonymous';
     
     const notification = await Notification.findOneAndUpdate(
       { _id: id, user_id },
@@ -96,9 +100,9 @@ router.put('/:id/read', async (req, res) => {
  * PUT /api/notifications/read-all
  * Mark all notifications as read
  */
-router.put('/read-all', async (req, res) => {
+router.put('/read-all', optionalAuth, async (req, res) => {
   try {
-    const { user_id = 'anonymous' } = req.query;
+    const user_id = req.userId?.toString() || 'anonymous';
     
     const result = await Notification.updateMany(
       { user_id, read: false },
@@ -126,10 +130,10 @@ router.put('/read-all', async (req, res) => {
  * DELETE /api/notifications/:id
  * Delete notification
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id = 'anonymous' } = req.query;
+    const user_id = req.userId?.toString() || 'anonymous';
     
     const notification = await Notification.findOneAndDelete({ _id: id, user_id });
     

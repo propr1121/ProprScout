@@ -6,6 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Star, Zap, Crown, ArrowRight } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 const Pricing = ({ className = '' }) => {
   const [plans, setPlans] = useState([]);
   const [features, setFeatures] = useState([]);
@@ -19,9 +21,9 @@ const Pricing = ({ className = '' }) => {
   const fetchPricingData = async () => {
     try {
       const [plansRes, featuresRes, statusRes] = await Promise.all([
-        fetch('http://localhost:6000/api/pricing/plans'),
-        fetch('http://localhost:6000/api/pricing/features'),
-        fetch('http://localhost:6000/api/pricing/user-status?user_id=anonymous')
+        fetch(`${API_URL}/api/pricing/plans`),
+        fetch(`${API_URL}/api/pricing/features`),
+        fetch(`${API_URL}/api/pricing/user-status?user_id=anonymous`)
       ]);
 
       const [plansData, featuresData, statusData] = await Promise.all([

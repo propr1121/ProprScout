@@ -17,6 +17,8 @@ import AdminDashboard from './components/AdminDashboard'
 import { usePropertyAnalysis } from './hooks/usePropertyAnalysis'
 import { useAuth } from './context/AuthContext'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 // Helper function to format time ago
 function formatTimeAgo(date) {
   if (!date) return 'N/A';
@@ -270,7 +272,7 @@ function Dashboard() {
     const fetchDashboardStats = async () => {
       try {
         setLoadingStats(true);
-        const response = await fetch('http://localhost:6000/api/dashboard/stats?user_id=anonymous');
+        const response = await fetch(`${API_URL}/api/dashboard/stats?user_id=anonymous`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -296,7 +298,7 @@ function Dashboard() {
     const fetchChartData = async () => {
       try {
         setLoadingChart(true);
-        const response = await fetch('http://localhost:6000/api/dashboard/activity?user_id=anonymous&days=7');
+        const response = await fetch(`${API_URL}/api/dashboard/activity?user_id=anonymous&days=7`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -318,7 +320,7 @@ function Dashboard() {
     const fetchAnalysisHistory = async () => {
       try {
         setLoadingHistory(true);
-        const response = await fetch('http://localhost:6000/api/detective/history?user_id=anonymous&limit=10');
+        const response = await fetch(`${API_URL}/api/detective/history?user_id=anonymous&limit=10`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data && result.data.analyses) {
@@ -413,7 +415,7 @@ function Dashboard() {
     const fetchCredits = async () => {
       try {
         setLoadingCredits(true);
-        const response = await fetch('http://localhost:6000/api/credits?user_id=anonymous');
+        const response = await fetch(`${API_URL}/api/credits?user_id=anonymous`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -441,7 +443,7 @@ function Dashboard() {
     const fetchNotifications = async () => {
       try {
         setLoadingNotifications(true);
-        const response = await fetch('http://localhost:6000/api/notifications?user_id=anonymous&limit=20');
+        const response = await fetch(`${API_URL}/api/notifications?user_id=anonymous&limit=20`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -469,7 +471,7 @@ function Dashboard() {
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      const response = await fetch(`http://localhost:6000/api/notifications/${notificationId}/read?user_id=anonymous`, {
+      const response = await fetch(`${API_URL}/api/notifications/${notificationId}/read?user_id=anonymous`, {
         method: 'PUT'
       });
       if (response.ok) {
@@ -489,7 +491,7 @@ function Dashboard() {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      const response = await fetch('http://localhost:6000/api/notifications/read-all?user_id=anonymous', {
+      const response = await fetch(`${API_URL}/api/notifications/read-all?user_id=anonymous`, {
         method: 'PUT'
       });
       if (response.ok) {

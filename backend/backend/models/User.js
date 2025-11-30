@@ -39,6 +39,28 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // Email verification
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: {
+    type: String,
+    default: null
+  },
+  emailVerificationExpires: {
+    type: Date,
+    default: null
+  },
+  // Password reset
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
+  },
   // Invite code tracking
   inviteCode: {
     type: String,
@@ -311,6 +333,100 @@ userSchema.methods.updateLastLogin = function(ip = null) {
 // Static method to find by email with password
 userSchema.statics.findByEmailWithPassword = function(email) {
   return this.findOne({ email: email.toLowerCase() }).select('+password');
+};
+
+// Method to generate email verification token
+userSchema.methods.generateEmailVerificationToken = function() {
+  const crypto = require('crypto');
+  const token = crypto.randomBytes(32).toString('hex');
+  this.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  return token; // Return unhashed token for email
+};
+
+// Method to verify email token
+userSchema.methods.verifyEmailToken = function(token) {
+  const crypto = require('crypto');
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  if (this.emailVerificationToken !== hashedToken) {
+    return false;
+  }
+
+  if (this.emailVerificationExpires < new Date()) {
+    return false;
+  }
+
+  this.emailVerified = true;
+  this.emailVerificationToken = null;
+  this.emailVerificationExpires = null;
+  return true;
+};
+
+// Method to generate password reset token
+userSchema.methods.generatePasswordResetToken = function() {
+  const crypto = require('crypto');
+  const token = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  return token; // Return unhashed token for email
+};
+
+// Method to verify password reset token
+userSchema.methods.verifyPasswordResetToken = function(token) {
+  const crypto = require('crypto');
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  if (this.passwordResetToken !== hashedToken) {
+    return false;
+  }
+
+  if (this.passwordResetExpires < new Date()) {
+    return false;
+  }
+
+  return true;
+};
+
+// Method to clear password reset token
+userSchema.methods.clearPasswordResetToken = function() {
+  this.passwordResetToken = null;
+  this.passwordResetExpires = null;
+};
+
+// Method to activate subscription
+userSchema.methods.activateSubscription = function(plan, stripeCustomerId = null, stripeSubscriptionId = null) {
+  const now = new Date();
+
+  this.subscription.type = plan === 'annual' ? 'annual' : 'pro';
+  this.subscription.plan = plan;
+  this.subscription.started_at = now;
+  this.subscription.status = 'active';
+
+  // Set expiration based on plan
+  const expiresAt = new Date(now);
+  if (plan === 'annual') {
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  } else {
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+  }
+  this.subscription.expires_at = expiresAt;
+
+  if (stripeCustomerId) {
+    this.subscription.stripe_customer_id = stripeCustomerId;
+  }
+  if (stripeSubscriptionId) {
+    this.subscription.stripe_subscription_id = stripeSubscriptionId;
+  }
+
+  return this.save();
+};
+
+// Method to cancel subscription
+userSchema.methods.cancelSubscription = function() {
+  this.subscription.status = 'cancelled';
+  // Keep access until expires_at
+  return this.save();
 };
 
 export default mongoose.model('User', userSchema);

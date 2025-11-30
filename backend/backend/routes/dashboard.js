@@ -7,16 +7,19 @@ import express from 'express';
 import mongoose from 'mongoose';
 import DetectiveAnalysis from '../models/DetectiveAnalysis.js';
 import logger from '../utils/logger.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * GET /api/dashboard/stats
  * Get dashboard statistics from MongoDB
+ * Uses JWT auth if available, falls back to anonymous for demo access
  */
-router.get('/stats', async (req, res) => {
+router.get('/stats', optionalAuth, async (req, res) => {
   try {
-    let { user_id = 'anonymous' } = req.query;
+    // Use authenticated user ID if available, otherwise show aggregated data
+    const user_id = req.userId?.toString() || 'anonymous';
 
     // Handle anonymous user - use string or null
     const userQuery = user_id === 'anonymous' || !user_id ? null : user_id;
@@ -112,10 +115,13 @@ router.get('/stats', async (req, res) => {
 /**
  * GET /api/dashboard/activity
  * Get 7-day activity data for chart
+ * Uses JWT auth if available, falls back to anonymous for demo access
  */
-router.get('/activity', async (req, res) => {
+router.get('/activity', optionalAuth, async (req, res) => {
   try {
-    let { user_id = 'anonymous', days = 7 } = req.query;
+    // Use authenticated user ID if available
+    const user_id = req.userId?.toString() || 'anonymous';
+    const { days = 7 } = req.query;
     const daysCount = parseInt(days);
 
     // Handle anonymous user

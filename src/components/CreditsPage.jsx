@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Sparkles, Zap, TrendingUp, Clock, Calendar, CreditCard, History } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 function CreditsPage({ onBack }) {
   const [credits, setCredits] = useState({
     balance: 15,
@@ -20,7 +22,7 @@ function CreditsPage({ onBack }) {
   const fetchCredits = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:6000/api/credits?user_id=anonymous');
+      const response = await fetch(`${API_URL}/api/credits?user_id=anonymous`);
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
@@ -42,7 +44,7 @@ function CreditsPage({ onBack }) {
 
   const fetchUsageHistory = async () => {
     try {
-      const response = await fetch('http://localhost:6000/api/detective/history?user_id=anonymous&limit=20');
+      const response = await fetch(`${API_URL}/api/detective/history?user_id=anonymous&limit=20`);
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {

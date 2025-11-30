@@ -337,34 +337,53 @@ router.delete('/analysis/:id', async (req, res) => {
 
 /**
  * GET /api/detective/stats
- * Get detective service statistics
+ * Get detective service statistics (using MongoDB)
  */
 router.get('/stats', async (req, res) => {
   try {
-    const stats = await query(`
-      SELECT 
-        COUNT(*) as total_analyses,
-        COUNT(DISTINCT user_id) as unique_users,
-        AVG(CAST(analysis->>'confidence' AS FLOAT)) as avg_confidence,
-        COUNT(CASE WHEN location_prediction IS NOT NULL THEN 1 END) as analyses_with_location
-      FROM detective_analyses
-    `);
+    // Get total analyses count
+    const totalAnalyses = await DetectiveAnalysis.countDocuments();
 
-    const recentAnalyses = await query(`
-      SELECT 
-        DATE(created_at) as date,
-        COUNT(*) as count
-      FROM detective_analyses
-      WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
-      GROUP BY DATE(created_at)
-      ORDER BY date DESC
-    `);
+    // Get unique users count
+    const uniqueUsers = await DetectiveAnalysis.distinct('user_id');
+
+    // Get average confidence
+    const avgConfidenceResult = await DetectiveAnalysis.aggregate([
+      { $group: { _id: null, avgConfidence: { $avg: '$confidence' } } }
+    ]);
+    const avgConfidence = avgConfidenceResult[0]?.avgConfidence || 0;
+
+    // Get analyses with location
+    const analysesWithLocation = await DetectiveAnalysis.countDocuments({
+      'location_prediction.coordinates': { $exists: true }
+    });
+
+    // Get recent activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentAnalyses = await DetectiveAnalysis.aggregate([
+      { $match: { created_at: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$created_at' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: -1 } },
+      { $project: { date: '$_id', count: 1, _id: 0 } }
+    ]);
 
     res.json({
       success: true,
       data: {
-        overview: stats.rows[0],
-        recent_activity: recentAnalyses.rows
+        overview: {
+          total_analyses: totalAnalyses,
+          unique_users: uniqueUsers.length,
+          avg_confidence: avgConfidence,
+          analyses_with_location: analysesWithLocation
+        },
+        recent_activity: recentAnalyses
       }
     });
 
@@ -537,6 +556,205 @@ async function storeAnalysisResult({ user_id, image_url, cloudinary_public_id, l
     logger.error('Store analysis result failed:', error);
     throw error;
   }
+}
+
+/**
+ * GET /api/detective/export/:analysisId
+ * Export analysis result as PDF
+ */
+router.get('/export/:analysisId', optionalAuth, async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+    const userId = req.userId?.toString() || 'anonymous';
+
+    // Find the analysis
+    const analysis = await DetectiveAnalysis.findById(analysisId);
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        error: 'Analysis not found'
+      });
+    }
+
+    // Check ownership (if not anonymous analysis)
+    if (analysis.user_id !== 'anonymous' && analysis.user_id !== userId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
+        message: 'You can only export your own analyses'
+      });
+    }
+
+    // Generate PDF content as HTML (can be converted to PDF on frontend)
+    const pdfContent = generatePDFContent(analysis);
+
+    res.json({
+      success: true,
+      data: {
+        html: pdfContent,
+        analysis: {
+          id: analysis._id,
+          coordinates: analysis.coordinates,
+          address: analysis.address,
+          confidence: analysis.confidence,
+          created_at: analysis.created_at,
+          image_url: analysis.image_url,
+          enrichment: analysis.enrichment
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Export analysis failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Export failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Generate PDF-ready HTML content from analysis
+ */
+function generatePDFContent(analysis) {
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const confidencePercent = analysis.confidence ? (analysis.confidence * 100).toFixed(1) : 'N/A';
+  const coords = analysis.coordinates ?
+    `${analysis.coordinates.lat?.toFixed(6)}, ${analysis.coordinates.lon?.toFixed(6)}` : 'N/A';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ProprScout Analysis Report</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a2e; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #00d185; }
+    .logo { font-size: 28px; font-weight: bold; color: #00d185; }
+    .subtitle { color: #666; margin-top: 5px; }
+    .report-date { color: #888; font-size: 12px; margin-top: 10px; }
+    .section { margin-bottom: 30px; }
+    .section-title { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: #f8f9fa; border-radius: 8px; padding: 20px; }
+    .card-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .card-value { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+    .confidence-bar { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+    .confidence-fill { height: 100%; background: linear-gradient(90deg, #00d185, #00a86b); border-radius: 4px; }
+    .address-box { background: #f0f7f4; border-left: 4px solid #00d185; padding: 15px 20px; border-radius: 0 8px 8px 0; }
+    .map-placeholder { background: #e8e8e8; height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #666; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #888; font-size: 12px; }
+    .image-container { text-align: center; margin: 20px 0; }
+    .image-container img { max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    @media print { body { padding: 20px; } .section { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">ProprScout</div>
+    <div class="subtitle">Property Location Analysis Report</div>
+    <div class="report-date">Generated: ${formatDate(new Date())}</div>
+  </div>
+
+  ${analysis.image_url ? `
+  <div class="section">
+    <div class="section-title">Analyzed Image</div>
+    <div class="image-container">
+      <img src="${analysis.image_url}" alt="Analyzed property image" />
+    </div>
+  </div>
+  ` : ''}
+
+  <div class="section">
+    <div class="section-title">Location Results</div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Coordinates</div>
+        <div class="card-value">${coords}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Confidence Score</div>
+        <div class="card-value">${confidencePercent}%</div>
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Address Information</div>
+    <div class="address-box">
+      <strong>${analysis.address?.formatted || 'Address not available'}</strong>
+      ${analysis.address?.city ? `<br>City: ${analysis.address.city}` : ''}
+      ${analysis.address?.state ? `<br>State/Region: ${analysis.address.state}` : ''}
+      ${analysis.address?.country ? `<br>Country: ${analysis.address.country}` : ''}
+      ${analysis.address?.postcode ? `<br>Postal Code: ${analysis.address.postcode}` : ''}
+    </div>
+  </div>
+
+  ${analysis.enrichment ? `
+  <div class="section">
+    <div class="section-title">Property Insights</div>
+    <div class="grid">
+      ${analysis.enrichment.property_type ? `
+      <div class="card">
+        <div class="card-label">Property Type</div>
+        <div class="card-value">${analysis.enrichment.property_type}</div>
+      </div>
+      ` : ''}
+      ${analysis.enrichment.estimated_value ? `
+      <div class="card">
+        <div class="card-label">Estimated Value</div>
+        <div class="card-value">€${analysis.enrichment.estimated_value.toLocaleString()}</div>
+      </div>
+      ` : ''}
+      ${analysis.enrichment.nearby_amenities ? `
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-label">Nearby Amenities</div>
+        <div class="card-value">${analysis.enrichment.nearby_amenities.join(', ')}</div>
+      </div>
+      ` : ''}
+    </div>
+  </div>
+  ` : ''}
+
+  <div class="section">
+    <div class="section-title">Analysis Details</div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Analysis ID</div>
+        <div class="card-value" style="font-size: 12px; font-family: monospace;">${analysis._id}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Analysis Date</div>
+        <div class="card-value" style="font-size: 14px;">${formatDate(analysis.created_at)}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>This report was generated by ProprScout Property Intelligence</p>
+    <p>For more information, visit proprscout.com</p>
+    <p style="margin-top: 10px; color: #aaa;">Report ID: ${analysis._id} | Confidence: ${confidencePercent}%</p>
+  </div>
+</body>
+</html>
+  `.trim();
 }
 
 export default router;

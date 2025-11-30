@@ -5,16 +5,19 @@
 import express from 'express';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * GET /api/credits
  * Get user credits with recharge date
+ * Uses JWT auth if available, falls back to anonymous for demo access
  */
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { user_id = 'anonymous' } = req.query;
+    // Use authenticated user ID if available, otherwise 'anonymous' for demo
+    const user_id = req.userId?.toString() || 'anonymous';
 
     // For anonymous users, return default credits (no database lookup needed)
     if (user_id === 'anonymous') {

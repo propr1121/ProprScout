@@ -1,6 +1,8 @@
 import { parsePropertyUrl } from './urlParser.js';
 import { scrapeProperty as browserScrape } from './browserScraper.js';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 /**
  * Scrape property data from Portuguese real estate websites using robust anti-bot methods
  * @param {string} url - Property URL
@@ -9,7 +11,7 @@ import { scrapeProperty as browserScrape } from './browserScraper.js';
 export async function scrapeProperty(url) {
   try {
     console.log(`🔍 Starting robust scrape for: ${url}`);
-    
+
     // Parse URL to get site and property ID
     const { site, propertyId } = parsePropertyUrl(url);
     console.log(`📍 Detected site: ${site}, Property ID: ${propertyId}`);
@@ -18,7 +20,7 @@ export async function scrapeProperty(url) {
     let propertyData;
     try {
       console.log('🔄 Attempting server-side scraping...');
-      const response = await fetch('http://localhost:6000/api/properties/scrape', {
+      const response = await fetch(`${API_URL}/api/properties/scrape`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })

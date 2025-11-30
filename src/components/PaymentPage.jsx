@@ -8,6 +8,8 @@ import {
 } from '@stripe/react-stripe-js';
 import { ArrowLeft, CheckCircle, Sparkles, CreditCard, Shield, Clock } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 // Initialize Stripe - Only if key is provided (prevents errors)
 // Memoize the promise to avoid re-initialization
 let stripePromiseInstance = null;
@@ -135,7 +137,7 @@ function PaymentFormWrapper({ selectedPlan, onBack }) {
         abortController = new AbortController();
         timeoutId = setTimeout(() => abortController.abort(), 25000); // 25 second timeout
         
-        const response = await fetch('http://localhost:6000/api/payments/create-intent', {
+        const response = await fetch(`${API_URL}/api/payments/create-intent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

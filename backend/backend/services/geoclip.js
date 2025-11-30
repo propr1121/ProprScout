@@ -1,12 +1,15 @@
 /**
  * GeoCLIP service for image geolocation
- * Note: GeoCLIP is handled by Flask backend (port 5000)
+ * Note: GeoCLIP is handled by Flask backend
  * This service proxies requests to Flask or provides fallback
  */
 
 import axios from 'axios';
 import sharp from 'sharp';
 import logger from '../utils/logger.js';
+
+// GeoCLIP Flask service URL - configure via environment variable
+const GEOCLIP_API_URL = process.env.GEOCLIP_API_URL || 'http://localhost:5000';
 
 let cacheService = null;
 
@@ -83,7 +86,7 @@ export async function predictLocation(imageUrl, options = {}) {
     logger.info('🔍 Proxying GeoCLIP prediction to Flask backend...');
     
     try {
-      const response = await axios.post('http://localhost:5000/api/geoclip/predict', {
+      const response = await axios.post(`${GEOCLIP_API_URL}/api/geoclip/predict`, {
         image_url: imageUrl,
         ...options
       }, {

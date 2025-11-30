@@ -9,6 +9,7 @@ import { scrapeProperty } from '../lib/scrapers/propertyScraper.js';
 import { analyzeProperty } from '../lib/analysis/propertyAnalyzer.js';
 import { analyzeListingWithAI, isConfigured as isAIConfigured } from '../services/anthropic.js';
 import logger from '../utils/logger.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -380,19 +381,46 @@ router.get('/', async (req, res) => {
 /**
  * DELETE /api/properties/:id
  * Delete property by ID
+ * SECURITY: Requires authentication and ownership verification
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.userId?.toString();
 
-    const result = await query('DELETE FROM properties WHERE id = $1 RETURNING id', [id]);
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Authentication required',
+        message: 'You must be logged in to delete properties'
+      });
+    }
 
-    if (result.rows.length === 0) {
+    // First check if property exists and belongs to this user
+    const propertyCheck = await query(
+      'SELECT id, user_id FROM properties WHERE id = $1',
+      [id]
+    );
+
+    if (propertyCheck.rows.length === 0) {
       return res.status(404).json({
         error: 'Property not found'
       });
     }
 
+    // Verify ownership - property must belong to the authenticated user
+    const property = propertyCheck.rows[0];
+    if (property.user_id && property.user_id !== userId) {
+      logger.warn(`Unauthorized delete attempt: user ${userId} tried to delete property ${id} owned by ${property.user_id}`);
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'You can only delete your own properties'
+      });
+    }
+
+    // Proceed with deletion
+    await query('DELETE FROM properties WHERE id = $1', [id]);
+
+    logger.info(`Property ${id} deleted by user ${userId}`);
     res.json({
       success: true,
       message: 'Property deleted successfully'
