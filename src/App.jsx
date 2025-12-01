@@ -13,7 +13,14 @@ import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import AuthCallback from './components/AuthCallback'
 import InviteCodePage from './components/InviteCodePage'
+import PrivateBetaPage from './components/PrivateBetaPage'
+import InviteRequiredPage from './components/InviteRequiredPage'
+import ForgotPasswordPage from './components/ForgotPasswordPage'
+import ResetPasswordPage from './components/ResetPasswordPage'
 import AdminDashboard from './components/AdminDashboard'
+import PrivacyPolicyPage from './components/PrivacyPolicyPage'
+import TermsConditionsPage from './components/TermsConditionsPage'
+import AcceptableUsePage from './components/AcceptableUsePage'
 import { usePropertyAnalysis } from './hooks/usePropertyAnalysis'
 import { useAuth } from './context/AuthContext'
 
@@ -62,6 +69,7 @@ function LoginPageRoute() {
       onBack={() => navigate('/')}
       onSwitchToSignup={() => navigate('/invite')}
       onSuccess={() => navigate('/dashboard')}
+      onForgotPassword={() => navigate('/forgot-password')}
     />
   );
 }
@@ -156,6 +164,75 @@ function InviteCodePageRoute() {
         }
         navigate('/signup');
       }}
+      onBack={() => navigate('/')}
+      onLearnMore={() => navigate('/beta')}
+    />
+  );
+}
+
+function PrivateBetaPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <PrivateBetaPage
+      onBack={() => navigate('/')}
+      onHaveCode={() => navigate('/invite')}
+    />
+  );
+}
+
+function InviteRequiredPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <InviteRequiredPage
+      onBack={() => navigate('/login')}
+      onHaveCode={() => navigate('/invite')}
+      onLearnMore={() => navigate('/beta')}
+    />
+  );
+}
+
+function ForgotPasswordPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <ForgotPasswordPage
+      onBack={() => navigate('/')}
+      onBackToLogin={() => navigate('/login')}
+    />
+  );
+}
+
+function ResetPasswordPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <ResetPasswordPage
+      onBack={() => navigate('/')}
+      onBackToLogin={() => navigate('/login')}
+    />
+  );
+}
+
+function PrivacyPolicyPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <PrivacyPolicyPage
+      onBack={() => navigate('/')}
+    />
+  );
+}
+
+function TermsConditionsPageRoute() {
+  const navigate = useNavigate();
+  return (
+    <TermsConditionsPage
+      onBack={() => navigate('/')}
+    />
+  );
+}
+
+function AcceptableUsePageRoute() {
+  const navigate = useNavigate();
+  return (
+    <AcceptableUsePage
       onBack={() => navigate('/')}
     />
   );
@@ -600,7 +677,7 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             {/* Logo & Brand */}
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-12 h-12 flex items-center justify-center shadow-md" style={{ padding: '0px' }}>
@@ -1859,7 +1936,14 @@ function App() {
     <Routes>
       <Route path="/" element={<LandingPageRoute />} />
       <Route path="/invite" element={<InviteCodePageRoute />} />
+      <Route path="/beta" element={<PrivateBetaPageRoute />} />
+      <Route path="/invite-required" element={<InviteRequiredPageRoute />} />
       <Route path="/login" element={<LoginPageRoute />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPageRoute />} />
+      <Route path="/reset-password" element={<ResetPasswordPageRoute />} />
+      <Route path="/privacy" element={<PrivacyPolicyPageRoute />} />
+      <Route path="/terms" element={<TermsConditionsPageRoute />} />
+      <Route path="/acceptable-use" element={<AcceptableUsePageRoute />} />
       <Route path="/signup" element={<SignupPageRoute />} />
       <Route path="/auth/callback" element={<AuthCallbackRoute />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

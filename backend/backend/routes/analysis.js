@@ -35,12 +35,12 @@ router.post('/analyze', [
 
     // Get property data
     const propertyResult = await query(`
-      SELECT 
+      SELECT
         id, url, site, property_id, title, description, price, area,
-        rooms, bathrooms, location, 
+        rooms, bathrooms, location,
         coordinates[0] as longitude, coordinates[1] as latitude,
         features, images, raw_data
-      FROM properties 
+      FROM properties
       WHERE id = $1
     `, [property_id]);
 
@@ -122,55 +122,85 @@ router.post('/analyze', [
 });
 
 /**
- * GET /api/analysis/:property_id
- * Get analysis results for property
+ * GET /api/analysis/stats
+ * Get analysis statistics
+ * NOTE: This route MUST be defined before /:property_id to avoid being caught by that route
  */
-router.get('/:property_id', async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const { property_id } = req.params;
-
     // Check if PostgreSQL is available
     if (!getPool()) {
-      return res.status(404).json({
-        error: 'Analysis not found',
-        message: 'Analysis history requires PostgreSQL database'
+      return res.json({
+        success: true,
+        data: {
+          overview: {
+            total_analyses: 0,
+            avg_score: 0,
+            min_score: 0,
+            max_score: 0,
+            high_score_analyses: 0,
+            medium_score_analyses: 0,
+            low_score_analyses: 0
+          },
+          score_distribution: [],
+          by_site: []
+        },
+        message: 'Analysis stats requires PostgreSQL database'
       });
     }
 
-    const result = await query(`
+    const stats = await query(`
       SELECT
-        ar.*,
-        p.title, p.url, p.site, p.price, p.area, p.location
+        COUNT(*) as total_analyses,
+        AVG(overall_score) as avg_score,
+        MIN(overall_score) as min_score,
+        MAX(overall_score) as max_score,
+        COUNT(CASE WHEN overall_score >= 80 THEN 1 END) as high_score_analyses,
+        COUNT(CASE WHEN overall_score >= 60 AND overall_score < 80 THEN 1 END) as medium_score_analyses,
+        COUNT(CASE WHEN overall_score < 60 THEN 1 END) as low_score_analyses
+      FROM analysis_results
+    `);
+
+    const scoreDistribution = await query(`
+      SELECT
+        CASE
+          WHEN overall_score >= 90 THEN '90-100'
+          WHEN overall_score >= 80 THEN '80-89'
+          WHEN overall_score >= 70 THEN '70-79'
+          WHEN overall_score >= 60 THEN '60-69'
+          WHEN overall_score >= 50 THEN '50-59'
+          ELSE '0-49'
+        END as score_range,
+        COUNT(*) as count
+      FROM analysis_results
+      GROUP BY score_range
+      ORDER BY score_range
+    `);
+
+    const siteStats = await query(`
+      SELECT
+        p.site,
+        COUNT(*) as count,
+        AVG(ar.overall_score) as avg_score
       FROM analysis_results ar
       JOIN properties p ON ar.property_id = p.id
-      WHERE ar.property_id = $1
-      ORDER BY ar.created_at DESC
-      LIMIT 1
-    `, [property_id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: 'Analysis not found'
-      });
-    }
-
-    const analysis = result.rows[0];
-
-    // Parse JSON fields
-    analysis.price_analysis = JSON.parse(analysis.price_analysis);
-    analysis.location_analysis = JSON.parse(analysis.location_analysis);
-    analysis.property_analysis = JSON.parse(analysis.property_analysis);
-    analysis.geolocation_data = JSON.parse(analysis.geolocation_data || '{}');
+      GROUP BY p.site
+      ORDER BY count DESC
+    `);
 
     res.json({
       success: true,
-      data: analysis
+      data: {
+        overview: stats.rows[0],
+        score_distribution: scoreDistribution.rows,
+        by_site: siteStats.rows
+      }
     });
 
   } catch (error) {
-    logger.error('Get analysis failed:', error);
+    logger.error('Get analysis stats failed:', error);
     res.status(500).json({
-      error: 'Get analysis failed',
+      error: 'Get analysis stats failed',
       message: error.message
     });
   }
@@ -284,63 +314,56 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * GET /api/analysis/stats
- * Get analysis statistics
+ * GET /api/analysis/:property_id
+ * Get analysis results for property
+ * NOTE: This route MUST be defined AFTER /stats to avoid catching 'stats' as a property_id
  */
-router.get('/stats', async (req, res) => {
+router.get('/:property_id', async (req, res) => {
   try {
-    const stats = await query(`
-      SELECT 
-        COUNT(*) as total_analyses,
-        AVG(overall_score) as avg_score,
-        MIN(overall_score) as min_score,
-        MAX(overall_score) as max_score,
-        COUNT(CASE WHEN overall_score >= 80 THEN 1 END) as high_score_analyses,
-        COUNT(CASE WHEN overall_score >= 60 AND overall_score < 80 THEN 1 END) as medium_score_analyses,
-        COUNT(CASE WHEN overall_score < 60 THEN 1 END) as low_score_analyses
-      FROM analysis_results
-    `);
+    const { property_id } = req.params;
 
-    const scoreDistribution = await query(`
-      SELECT 
-        CASE 
-          WHEN overall_score >= 90 THEN '90-100'
-          WHEN overall_score >= 80 THEN '80-89'
-          WHEN overall_score >= 70 THEN '70-79'
-          WHEN overall_score >= 60 THEN '60-69'
-          WHEN overall_score >= 50 THEN '50-59'
-          ELSE '0-49'
-        END as score_range,
-        COUNT(*) as count
-      FROM analysis_results
-      GROUP BY score_range
-      ORDER BY score_range
-    `);
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      return res.status(404).json({
+        error: 'Analysis not found',
+        message: 'Analysis history requires PostgreSQL database'
+      });
+    }
 
-    const siteStats = await query(`
-      SELECT 
-        p.site,
-        COUNT(*) as count,
-        AVG(ar.overall_score) as avg_score
+    const result = await query(`
+      SELECT
+        ar.*,
+        p.title, p.url, p.site, p.price, p.area, p.location
       FROM analysis_results ar
       JOIN properties p ON ar.property_id = p.id
-      GROUP BY p.site
-      ORDER BY count DESC
-    `);
+      WHERE ar.property_id = $1
+      ORDER BY ar.created_at DESC
+      LIMIT 1
+    `, [property_id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Analysis not found'
+      });
+    }
+
+    const analysis = result.rows[0];
+
+    // Parse JSON fields
+    analysis.price_analysis = JSON.parse(analysis.price_analysis);
+    analysis.location_analysis = JSON.parse(analysis.location_analysis);
+    analysis.property_analysis = JSON.parse(analysis.property_analysis);
+    analysis.geolocation_data = JSON.parse(analysis.geolocation_data || '{}');
 
     res.json({
       success: true,
-      data: {
-        overview: stats.rows[0],
-        score_distribution: scoreDistribution.rows,
-        by_site: siteStats.rows
-      }
+      data: analysis
     });
 
   } catch (error) {
-    logger.error('Get analysis stats failed:', error);
+    logger.error('Get analysis failed:', error);
     res.status(500).json({
-      error: 'Get analysis stats failed',
+      error: 'Get analysis failed',
       message: error.message
     });
   }

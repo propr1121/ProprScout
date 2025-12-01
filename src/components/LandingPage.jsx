@@ -1,11 +1,74 @@
 import React, { useState, useEffect } from 'react'
-import { Play, Menu, X, Sparkles, ArrowRight, Users, Shield, BarChart3, MapPin, TrendingUp, User, CheckCircle, Calendar, UserPlus, ScanSearch, Navigation2, Target, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Play, Menu, X, Sparkles, ArrowRight, Users, Shield, BarChart3, MapPin, TrendingUp, User, CheckCircle, Calendar, UserPlus, ScanSearch, Navigation2, Target, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+
+// HubSpot configuration
+const HUBSPOT_PORTAL_ID = '145927542';
+const HUBSPOT_FORM_ID = '9cee1e3c-909d-40b1-8fe3-ea3088eaa159';
+const HUBSPOT_REGION = 'eu1';
 
 function LandingPage({ onEnterApp, onLogin, onSignup }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentCaseStudy, setCurrentCaseStudy] = useState(0);
+
+  // Newsletter state
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [newsletterError, setNewsletterError] = useState('');
+
+  // Submit newsletter to HubSpot
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    setNewsletterError('');
+
+    if (!newsletterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newsletterEmail)) {
+      setNewsletterError('Please enter a valid email');
+      return;
+    }
+
+    setNewsletterLoading(true);
+
+    try {
+      const response = await fetch(
+        `https://api.hsforms.com/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${HUBSPOT_FORM_ID}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            portalId: HUBSPOT_PORTAL_ID,
+            formGuid: HUBSPOT_FORM_ID,
+            fields: [
+              {
+                name: 'email',
+                value: newsletterEmail
+              }
+            ],
+            context: {
+              pageUri: window.location.href,
+              pageName: 'ProprScout Landing Page'
+            }
+          })
+        }
+      );
+
+      if (response.ok) {
+        setNewsletterSuccess(true);
+        setNewsletterEmail('');
+      } else {
+        const data = await response.json();
+        setNewsletterError(data.message || 'Failed to subscribe. Please try again.');
+      }
+    } catch (err) {
+      setNewsletterError('Failed to subscribe. Please try again.');
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   // Case studies data
   const caseStudies = [
@@ -168,15 +231,22 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo & Brand */}
-            <div className="flex items-center gap-3">
+            <a
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
               <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-12 h-12 flex items-center justify-center" style={{ padding: '0px' }}>
-                <svg 
-                  width="48" 
-                  height="48" 
-                  viewBox="0 0 1200 750" 
-                  fill="none" 
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 1200 750"
+                  fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  style={{ 
+                  style={{
                     display: 'block',
                     width: '48px',
                     height: '48px',
@@ -190,11 +260,11 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
                   </g>
                 </svg>
               </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
-                    <p className="text-xs text-gray-600">Real Estate Intelligence</p>
-                  </div>
-            </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
+                <p className="text-xs text-gray-600">Real Estate Intelligence</p>
+              </div>
+            </a>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
@@ -292,7 +362,7 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
               </button>
               
               <a 
-                href="https://calendly.com/johnmccoy/30min"
+                href="https://calendar.app.google/iQNpxffmmN6qb4fs6"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 text-base px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 font-semibold border border-gray-200/50 inline-flex items-center justify-center"
@@ -402,7 +472,7 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
               Enterprise licensing and pricing information available upon request.
             </p>
             <a 
-              href="https://calendly.com/johnmccoy/30min"
+              href="https://calendar.app.google/iQNpxffmmN6qb4fs6"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg"
@@ -466,13 +536,13 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 font-heading">Listing Analysis</h3>
               </div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-3">Turn property listings into market intelligence</h4>
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Turn listings into market intelligence</h4>
               <p className="text-gray-600 mb-6 text-sm leading-relaxed flex-grow">
                 ProprScout's cutting edge analysis models allow you to take any property listing URL and determine market value, location insights, and investment potential using only the listing data.
               </p>
             </div>
 
-            {/* Photo Location Search */}
+            {/* Photo Search */}
             <div className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-white/20 hover:border-primary-200/50 hover:-translate-y-1 flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative">
@@ -481,7 +551,7 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
                     <Navigation2 className="w-7 h-7 text-white drop-shadow-lg" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 font-heading">Photo Location Search</h3>
+                <h3 className="text-xl font-bold text-gray-900 font-heading">Photo Search</h3>
               </div>
               <h4 className="text-lg font-semibold text-gray-800 mb-3">Find location from property photos</h4>
               <p className="text-gray-600 mb-6 text-sm leading-relaxed flex-grow">
@@ -744,31 +814,54 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Terms & Conditions</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Acceptable Use</a></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors duration-200">Terms & Conditions</Link></li>
+                <li><Link to="/acceptable-use" className="hover:text-white transition-colors duration-200">Acceptable Use</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-lg font-semibold mb-4">Newsletter</h4>
               <p className="text-gray-400 mb-4">Keep up to date with news and content from ProprScout.</p>
-              <div className="flex">
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="flex-1 px-4 py-2 rounded-l-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-                <button className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 py-2 rounded-r-lg transition-all duration-200">
-                  Subscribe
-                </button>
-              </div>
+              {newsletterSuccess ? (
+                <div className="flex items-center gap-2 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Thanks for subscribing!</span>
+                </div>
+              ) : (
+                <form onSubmit={handleNewsletterSubmit}>
+                  <div className="flex">
+                    <input
+                      type="email"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="flex-1 px-4 py-2 rounded-l-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={newsletterLoading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={newsletterLoading}
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 py-2 rounded-r-lg transition-all duration-200 disabled:opacity-50 flex items-center"
+                    >
+                      {newsletterLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        'Subscribe'
+                      )}
+                    </button>
+                  </div>
+                  {newsletterError && (
+                    <p className="text-red-400 text-sm mt-2">{newsletterError}</p>
+                  )}
+                </form>
+              )}
             </div>
           </div>
           
           <div className="mt-12 pt-8 border-t border-gray-800">
             <p className="text-gray-500 text-xs text-center">
-              Copyright © 2024 ProprScout Intelligence a ProprHome © product.
+              Copyright © 2024 ProprScout, a ProprHome product developed by Hothouse Innovation LDA.
             </p>
           </div>
         </div>

@@ -5,12 +5,19 @@
 
 import express from 'express';
 import passport from 'passport';
+import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import InviteCode from '../models/InviteCode.js';
 import { generateToken, generateRefreshToken, verifyToken, requireAuth, blacklistToken } from '../middleware/auth.js';
 import logger from '../utils/logger.js';
+import {
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+  sendLoginNotificationEmail,
+  sendVerificationEmail
+} from '../utils/email.js';
 
 const router = express.Router();
 
@@ -148,6 +155,11 @@ router.post('/register', registrationRateLimiter, [
 
     logger.info(`New user registered: ${email}`);
 
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(email, name).catch(err => {
+      logger.error('Failed to send welcome email:', err);
+    });
+
     res.status(201).json({
       success: true,
       message: 'Registration successful',
@@ -221,6 +233,15 @@ router.post('/login', authRateLimiter, [
       const refreshToken = generateRefreshToken(user);
 
       logger.info(`User logged in: ${user.email}`);
+
+      // Send login notification email (non-blocking)
+      sendLoginNotificationEmail(user.email, user.name, {
+        ip: ip,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date()
+      }).catch(err => {
+        logger.error('Failed to send login notification:', err);
+      });
 
       res.json({
         success: true,
@@ -538,6 +559,186 @@ router.get('/referral-code', requireAuth, async (req, res) => {
 });
 
 // ============================================
+// Password Reset Routes
+// ============================================
+
+// Rate limiter for password reset requests
+const passwordResetRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 requests per hour
+  message: {
+    error: 'Too many password reset requests',
+    message: 'Please try again in an hour'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Request password reset email
+ */
+router.post('/forgot-password', passwordResetRateLimiter, [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { email } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Always return success to prevent email enumeration
+    // But only send email if user exists and uses local auth
+    if (user && user.authProvider === 'local') {
+      // Generate reset token
+      const resetToken = user.generatePasswordResetToken();
+      await user.save();
+
+      // Send password reset email
+      try {
+        await sendPasswordResetEmail(email, resetToken, user.name);
+        logger.info(`Password reset email sent to: ${email}`);
+      } catch (emailError) {
+        logger.error('Failed to send password reset email:', emailError);
+        // Clear the token since email failed
+        user.clearPasswordResetToken();
+        await user.save();
+        return res.status(500).json({
+          error: 'Email failed',
+          message: 'Failed to send password reset email. Please try again.'
+        });
+      }
+    } else if (user && user.authProvider !== 'local') {
+      // User exists but uses SSO - log for debugging but don't reveal
+      logger.info(`Password reset requested for SSO user: ${email} (${user.authProvider})`);
+    } else {
+      // No user found - log for debugging but don't reveal
+      logger.info(`Password reset requested for non-existent email: ${email}`);
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({
+      success: true,
+      message: 'If an account exists with this email, you will receive a password reset link shortly.'
+    });
+
+  } catch (error) {
+    logger.error('Forgot password error:', error);
+    res.status(500).json({
+      error: 'Request failed',
+      message: 'An error occurred. Please try again.'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password using token from email
+ */
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { token, password } = req.body;
+
+    // Hash the token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid token',
+        message: 'Password reset link is invalid or has expired. Please request a new one.'
+      });
+    }
+
+    // Update password and clear reset token
+    user.password = password;
+    user.clearPasswordResetToken();
+    await user.save();
+
+    logger.info(`Password reset successful for: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Password has been reset successfully. You can now log in with your new password.'
+    });
+
+  } catch (error) {
+    logger.error('Reset password error:', error);
+    res.status(500).json({
+      error: 'Reset failed',
+      message: 'An error occurred while resetting your password. Please try again.'
+    });
+  }
+});
+
+/**
+ * GET /api/auth/verify-reset-token/:token
+ * Verify if a reset token is valid (for frontend validation)
+ */
+router.get('/verify-reset-token/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Hash the token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        valid: false,
+        message: 'Password reset link is invalid or has expired.'
+      });
+    }
+
+    res.json({
+      valid: true,
+      message: 'Token is valid'
+    });
+
+  } catch (error) {
+    logger.error('Verify reset token error:', error);
+    res.status(500).json({
+      valid: false,
+      message: 'An error occurred while verifying the token.'
+    });
+  }
+});
+
+// ============================================
 // Google OAuth Routes
 // ============================================
 
@@ -556,14 +757,23 @@ router.get('/google',
  * GET /api/auth/google/callback
  * Google OAuth callback
  */
-router.get('/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed`
-  }),
-  async (req, res) => {
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, async (err, user, info) => {
     try {
-      const user = req.user;
+      if (err) {
+        logger.error('Google auth error:', err);
+        return res.redirect(`${FRONTEND_URL}/login?error=google_auth_failed`);
+      }
+
+      // Check if invite is required (user doesn't exist and beta mode is on)
+      if (!user && info?.message === 'invite_required') {
+        logger.info(`Redirecting to invite-required page for: ${info.email}`);
+        return res.redirect(`${FRONTEND_URL}/invite-required?provider=google`);
+      }
+
+      if (!user) {
+        return res.redirect(`${FRONTEND_URL}/login?error=google_auth_failed`);
+      }
 
       // Update last login
       const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -581,8 +791,8 @@ router.get('/google/callback',
       logger.error('Google callback error:', error);
       res.redirect(`${FRONTEND_URL}/login?error=google_callback_failed`);
     }
-  }
-);
+  })(req, res, next);
+});
 
 // ============================================
 // LinkedIn OAuth Routes
@@ -602,14 +812,23 @@ router.get('/linkedin',
  * GET /api/auth/linkedin/callback
  * LinkedIn OAuth callback
  */
-router.get('/linkedin/callback',
-  passport.authenticate('linkedin', {
-    session: false,
-    failureRedirect: `${FRONTEND_URL}/login?error=linkedin_auth_failed`
-  }),
-  async (req, res) => {
+router.get('/linkedin/callback', (req, res, next) => {
+  passport.authenticate('linkedin', { session: false }, async (err, user, info) => {
     try {
-      const user = req.user;
+      if (err) {
+        logger.error('LinkedIn auth error:', err);
+        return res.redirect(`${FRONTEND_URL}/login?error=linkedin_auth_failed`);
+      }
+
+      // Check if invite is required (user doesn't exist and beta mode is on)
+      if (!user && info?.message === 'invite_required') {
+        logger.info(`Redirecting to invite-required page for: ${info.email}`);
+        return res.redirect(`${FRONTEND_URL}/invite-required?provider=linkedin`);
+      }
+
+      if (!user) {
+        return res.redirect(`${FRONTEND_URL}/login?error=linkedin_auth_failed`);
+      }
 
       // Update last login
       const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -627,7 +846,7 @@ router.get('/linkedin/callback',
       logger.error('LinkedIn callback error:', error);
       res.redirect(`${FRONTEND_URL}/login?error=linkedin_callback_failed`);
     }
-  }
-);
+  })(req, res, next);
+});
 
 export default router;

@@ -9,13 +9,21 @@ import { Key, ArrowRight, CheckCircle, AlertCircle, Loader2, Sparkles, Shield, U
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
-export default function InviteCodePage({ onValidCode, onBack }) {
+// Circle community URL
+const CIRCLE_COMMUNITY_URL = 'https://comunidade-proprhome.circle.so/join?invitation_token=c6506129244306db30c29cd7d0d39fd1ab193635-221422bd-f77e-4b84-b78c-befe5af7a202';
+
+export default function InviteCodePage({ onValidCode, onBack, onLearnMore }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [codeData, setCodeData] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Check for code in URL
   useEffect(() => {
@@ -118,7 +126,10 @@ export default function InviteCodePage({ onValidCode, onBack }) {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 w-12 h-12 flex items-center justify-center">
                 <svg
                   width="48"
@@ -144,7 +155,7 @@ export default function InviteCodePage({ onValidCode, onBack }) {
                 <h1 className="text-2xl font-bold text-gray-900">ProprScout</h1>
                 <p className="text-xs text-gray-600">Real Estate Intelligence</p>
               </div>
-            </div>
+            </button>
 
             {/* Beta Badge */}
             <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold">
@@ -250,17 +261,19 @@ export default function InviteCodePage({ onValidCode, onBack }) {
                   <div className="flex-1 border-t border-gray-200"></div>
                 </div>
 
-                {/* Request Access */}
+                {/* Join Circle for Access */}
                 <div className="text-center">
                   <p className="text-gray-600 mb-4">
-                    Join our waitlist to get early access when spots become available.
+                    Join our Circle community to unlock early access.
                   </p>
                   <a
-                    href="mailto:miguel@proprhome.com?subject=Beta%20access%20request%20to%20ProprScout&body=Hi%20Miguel%2C%0A%0AI%20would%20like%20to%20request%20access%20to%20the%20ProprScout%20Beta%20programme.%0A%0AThank%20you!"
+                    href={CIRCLE_COMMUNITY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors"
                   >
                     <Users className="w-4 h-4" />
-                    Request Access
+                    Unlock Access
                   </a>
                 </div>
               </>
@@ -314,7 +327,7 @@ export default function InviteCodePage({ onValidCode, onBack }) {
           {/* Footer */}
           <p className="text-center text-gray-500 text-sm mt-8">
             ProprScout is currently in private beta.{' '}
-            <a href="#" className="text-primary-600 hover:underline">Learn more</a>
+            <button onClick={onLearnMore} className="text-primary-600 hover:underline">Learn more</button>
           </p>
         </div>
       </main>

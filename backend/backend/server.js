@@ -4,13 +4,16 @@
  * Express.js API with GeoCLIP, Nominatim, PostgreSQL, Redis
  */
 
+// IMPORTANT: Load dotenv FIRST before any other imports that need env vars
+// ES modules evaluate all imports before running code, so dotenv must be preloaded
+import './dotenv-config.js';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import passport from 'passport';
@@ -30,6 +33,7 @@ import creditsRoutes from './routes/credits.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import inviteRoutes from './routes/invite.js';
+import integrationsRoutes from './routes/integrations.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -46,8 +50,7 @@ import { connectMongoDB } from './database/mongodb.js';
 import { initRedis } from './services/redis.js';
 import { initCloudinary } from './services/cloudinary.js';
 
-// Load environment variables
-dotenv.config();
+// Note: dotenv is loaded via ./dotenv-config.js import at the top
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -151,6 +154,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/credits', creditsRoutes);
+app.use('/api/integrations', integrationsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

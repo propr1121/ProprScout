@@ -8,6 +8,10 @@ import Stripe from 'stripe';
 import logger from '../utils/logger.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
+import {
+  sendPaymentConfirmationEmail,
+  sendSubscriptionEmail
+} from '../utils/email.js';
 
 const router = express.Router();
 
@@ -205,6 +209,16 @@ async function handlePaymentSuccess(paymentIntent) {
       read: false
     });
 
+    // Send payment confirmation email
+    sendPaymentConfirmationEmail(user.email, user.name, {
+      amount: (paymentIntent.amount / 100).toFixed(2),
+      currency: paymentIntent.currency?.toUpperCase() || 'EUR',
+      plan: plan,
+      transactionId: paymentIntent.id
+    }).catch(err => {
+      logger.error('Failed to send payment confirmation email:', err);
+    });
+
     logger.info(`Payment notification sent to user ${user.email}`);
 
   } catch (error) {
@@ -238,6 +252,13 @@ async function handlePaymentFailed(paymentIntent) {
         message: 'Your payment could not be processed. Please update your payment method and try again.',
         icon: 'alert-circle',
         read: false
+      });
+
+      // Send payment failed email
+      sendSubscriptionEmail(user.email, user.name, {
+        status: 'payment_failed'
+      }).catch(err => {
+        logger.error('Failed to send payment failed email:', err);
       });
 
       logger.info(`Payment failure notification sent to user ${user.email}`);
@@ -311,6 +332,14 @@ async function handleSubscriptionCancelled(subscription) {
       read: false
     });
 
+    // Send cancellation email
+    sendSubscriptionEmail(user.email, user.name, {
+      status: 'cancelled',
+      expiresAt: user.subscription.expires_at
+    }).catch(err => {
+      logger.error('Failed to send cancellation email:', err);
+    });
+
     logger.info(`Subscription cancelled for user ${user.email}`);
 
   } catch (error) {
@@ -357,6 +386,15 @@ async function handleInvoicePaid(invoice) {
       read: false
     });
 
+    // Send renewal email
+    sendSubscriptionEmail(user.email, user.name, {
+      status: 'renewed',
+      plan: plan,
+      expiresAt: expiresAt
+    }).catch(err => {
+      logger.error('Failed to send renewal email:', err);
+    });
+
     logger.info(`Subscription renewed for user ${user.email}`);
 
   } catch (error) {
@@ -391,6 +429,13 @@ async function handleInvoiceFailed(invoice) {
       message: 'We couldn\'t process your subscription payment. Please update your payment method to avoid service interruption.',
       icon: 'alert-triangle',
       read: false
+    });
+
+    // Send payment failed email
+    sendSubscriptionEmail(user.email, user.name, {
+      status: 'payment_failed'
+    }).catch(err => {
+      logger.error('Failed to send invoice failed email:', err);
     });
 
     logger.warn(`Invoice payment failed notification sent to user ${user.email}`);

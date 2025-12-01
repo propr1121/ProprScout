@@ -91,6 +91,15 @@ const inviteCodeSchema = new mongoose.Schema({
     default: null
   },
 
+  // Integration metadata (for HubSpot, Circle, etc.)
+  metadata: {
+    email: { type: String, default: null, index: true },
+    name: { type: String, default: null },
+    hubspot_contact_id: { type: String, default: null },
+    source: { type: String, default: null },
+    created_via: { type: String, default: null }
+  },
+
   // Timestamps
   created_at: {
     type: Date,

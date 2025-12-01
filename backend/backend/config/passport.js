@@ -10,6 +10,9 @@ import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import User from '../models/User.js';
 import logger from '../utils/logger.js';
 
+// Beta mode - require invite codes for new SSO users
+const REQUIRE_INVITE_CODE = process.env.REQUIRE_INVITE_CODE !== 'false'; // Default to true
+
 /**
  * Configure Passport strategies
  */
@@ -95,7 +98,18 @@ export function configurePassport() {
             }
           }
 
-          // Create new user
+          // BETA MODE: Don't create new users via SSO - require invite code first
+          if (REQUIRE_INVITE_CODE) {
+            logger.info(`SSO login attempted for unregistered email via Google: ${email}`);
+            // Return a special error indicating invite is required
+            return done(null, false, {
+              message: 'invite_required',
+              email: email,
+              provider: 'google'
+            });
+          }
+
+          // Create new user (only if not in beta mode)
           user = new User({
             email: email,
             name: profile.displayName,
@@ -126,7 +140,7 @@ export function configurePassport() {
         clientID: process.env.LINKEDIN_CLIENT_ID,
         clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
         callbackURL: process.env.LINKEDIN_CALLBACK_URL || '/api/auth/linkedin/callback',
-        scope: ['r_emailaddress', 'r_liteprofile']
+        scope: ['openid', 'profile', 'email']
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
@@ -154,7 +168,18 @@ export function configurePassport() {
             }
           }
 
-          // Create new user
+          // BETA MODE: Don't create new users via SSO - require invite code first
+          if (REQUIRE_INVITE_CODE) {
+            logger.info(`SSO login attempted for unregistered email via LinkedIn: ${email}`);
+            // Return a special error indicating invite is required
+            return done(null, false, {
+              message: 'invite_required',
+              email: email,
+              provider: 'linkedin'
+            });
+          }
+
+          // Create new user (only if not in beta mode)
           user = new User({
             email: email,
             name: profile.displayName,

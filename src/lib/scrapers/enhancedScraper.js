@@ -395,10 +395,11 @@ export class EnhancedPropertyScraper {
         factor: 2,
         minTimeout: 3000,
         maxTimeout: 15000,
-        onFailedAttempt: (error) => {
+        onFailedAttempt: async (error) => {
           console.log(`🔄 Enhanced retry attempt ${error.attemptNumber} for ${url}`);
           // Rotate proxy on retry
-          this.proxyService.markProxyFailed(await this.proxyService.getNextProxy());
+          const proxy = await this.proxyService.getNextProxy();
+          this.proxyService.markProxyFailed(proxy);
         }
       });
     });

@@ -7,7 +7,7 @@ import { body, validationResult } from 'express-validator';
 import { predictLocation, batchPredictLocations } from '../services/geoclip.js';
 import { reverseGeocode, forwardGeocode } from '../services/nominatim.js';
 import { uploadImage, uploadImageFromUrl } from '../services/cloudinary.js';
-import { query } from '../database/init.js';
+import { query, getPool } from '../database/init.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -278,10 +278,19 @@ router.post('/upload-and-predict', [
  */
 router.get('/history', async (req, res) => {
   try {
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      return res.json({
+        success: true,
+        data: [],
+        message: 'Geolocation history requires PostgreSQL database'
+      });
+    }
+
     const { limit = 50, offset = 0 } = req.query;
 
     const result = await query(`
-      SELECT 
+      SELECT
         id,
         image_url,
         predicted_coordinates[0] as longitude,
@@ -313,8 +322,23 @@ router.get('/history', async (req, res) => {
  */
 router.get('/stats', async (req, res) => {
   try {
+    // Check if PostgreSQL is available
+    if (!getPool()) {
+      return res.json({
+        success: true,
+        data: {
+          total_predictions: 0,
+          avg_confidence: 0,
+          min_confidence: 0,
+          max_confidence: 0,
+          high_confidence_predictions: 0
+        },
+        message: 'Geolocation stats requires PostgreSQL database'
+      });
+    }
+
     const stats = await query(`
-      SELECT 
+      SELECT
         COUNT(*) as total_predictions,
         AVG(confidence_score) as avg_confidence,
         MIN(confidence_score) as min_confidence,

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 // Backend API URL - Node.js backend on port 3002
-const API_BASE_URL = 'http://localhost:3002';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 /**
  * Custom hook for property analysis workflow
