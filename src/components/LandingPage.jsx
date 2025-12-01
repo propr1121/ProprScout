@@ -754,8 +754,8 @@ function LandingPage({ onEnterApp, onLogin, onSignup }) {
           <h2 className="text-4xl font-bold font-heading mb-6 leading-tight">
             Transforming data into property intelligence.
           </h2>
-          <p className="text-lg mb-8 max-w-4xl mx-auto leading-relaxed">
-            <strong>ProprScout enables real estate professionals and investors to act swiftly, determining property values and market opportunities within seconds.</strong>
+          <p className="text-lg mb-8 max-w-4xl mx-auto leading-relaxed font-light opacity-90">
+            ProprScout enables real estate professionals and investors to act swiftly, determining property values and market opportunities within seconds.
           </p>
           <button 
             onClick={onEnterApp}

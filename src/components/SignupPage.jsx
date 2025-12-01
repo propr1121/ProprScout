@@ -210,30 +210,11 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
 
           {step === 1 && (
             <>
-              {/* SSO Buttons */}
-              <div className="space-y-3 mb-6">
-                <button
-                  onClick={handleGoogleSignup}
-                  className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors shadow-sm"
-                >
-                  <GoogleIcon />
-                  <span className="ml-3 text-gray-700 font-medium">Sign up with Google</span>
-                </button>
-
-                <button
-                  onClick={handleLinkedInSignup}
-                  className="w-full flex items-center justify-center px-4 py-3 bg-[#0A66C2] hover:bg-[#004182] rounded-lg transition-colors shadow-sm"
-                >
-                  <LinkedInIcon />
-                  <span className="ml-3 text-white font-medium">Sign up with LinkedIn</span>
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="flex items-center my-6">
-                <div className="flex-1 border-t border-gray-200"></div>
-                <span className="px-4 text-gray-400 text-sm">or</span>
-                <div className="flex-1 border-t border-gray-200"></div>
+              {/* Beta Notice - SSO disabled during beta */}
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 text-sm">
+                  <strong>Beta Access:</strong> During our beta period, please sign up with email and password using your invite code. SSO sign-in will be available after you create your account.
+                </p>
               </div>
 
               {/* Step 1 Form */}
