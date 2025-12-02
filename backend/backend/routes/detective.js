@@ -74,13 +74,16 @@ router.post('/analyze', requireAuth, upload.single('image'), async (req, res) =>
 
     // Predict location using GeoCLIP
     let locationPrediction = null;
+    let geoclipStatus = 'unavailable';
     try {
       locationPrediction = await predictLocation(uploadResult.url, {
         useCache: true,
         cacheTTL: 3600
       });
+      geoclipStatus = 'success';
     } catch (geoclipError) {
-      logger.warn('GeoCLIP prediction failed:', geoclipError);
+      logger.warn('GeoCLIP prediction failed:', geoclipError.message);
+      geoclipStatus = 'error';
     }
 
     // Reverse geocode if location predicted
@@ -153,22 +156,35 @@ router.post('/analyze', requireAuth, upload.single('image'), async (req, res) =>
     logger.info(`✅ Property Detective analysis completed: ${detectiveAnalysis._id}`);
 
     // Format response to match frontend expectations
+    const hasValidLocation = locationPrediction?.coordinates?.latitude &&
+                             locationPrediction?.coordinates?.longitude;
+
     const responseData = {
+      analysisId: detectiveAnalysis._id,
       coordinates: {
         lat: locationPrediction?.coordinates?.latitude || 0,
         lon: locationPrediction?.coordinates?.longitude || 0
       },
       address: {
-        formatted: addressInfo?.address || 'Unknown location',
-        city: addressInfo?.address_components?.city || 'Unknown',
-        district: addressInfo?.address_components?.suburb || 'Unknown'
+        formatted: hasValidLocation
+          ? (addressInfo?.address || 'Location predicted - address lookup pending')
+          : 'AI location service unavailable',
+        city: addressInfo?.address_components?.city || (hasValidLocation ? 'Unknown' : 'N/A'),
+        district: addressInfo?.address_components?.suburb || (hasValidLocation ? 'Unknown' : 'N/A')
       },
-      confidence: locationPrediction?.confidence || 0.5,
+      confidence: locationPrediction?.confidence || 0,
       enrichment: {
         schools: Math.floor(Math.random() * 5) + 1,
         supermarkets: Math.floor(Math.random() * 3) + 1,
         restaurants: Math.floor(Math.random() * 8) + 2,
         transport: Math.floor(Math.random() * 4) + 1
+      },
+      image_url: uploadResult.url,
+      serviceStatus: {
+        geoclip: geoclipStatus,
+        message: geoclipStatus === 'success'
+          ? 'Location predicted successfully'
+          : 'AI geolocation service is currently unavailable. Image uploaded for future analysis.'
       }
     };
 

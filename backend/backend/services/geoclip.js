@@ -9,7 +9,8 @@ import sharp from 'sharp';
 import logger from '../utils/logger.js';
 
 // GeoCLIP Flask service URL - configure via environment variable
-const GEOCLIP_API_URL = process.env.GEOCLIP_API_URL || 'http://localhost:5000';
+// Flask app runs on port 3001 by default (see backend/geolocation/app.py)
+const GEOCLIP_API_URL = process.env.GEOCLIP_API_URL || 'http://localhost:3001';
 
 let cacheService = null;
 

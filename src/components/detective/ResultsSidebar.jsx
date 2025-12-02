@@ -15,7 +15,8 @@ import {
   Crop,
   Maximize2,
   Check,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function ResultsSidebar({
@@ -44,7 +45,10 @@ export default function ResultsSidebar({
     }
   };
 
-  const { coordinates, address, confidence, enrichment } = result;
+  const { coordinates, address, confidence, enrichment, serviceStatus } = result;
+
+  // Check if ML service is unavailable
+  const isServiceUnavailable = serviceStatus?.geoclip === 'error' || confidence === 0;
 
   // Calculate confidence level
   const confidenceLevel = confidence > 0.7 ? 'high' : confidence > 0.4 ? 'medium' : 'low';
@@ -104,18 +108,33 @@ export default function ResultsSidebar({
             </div>
           </div>
 
-          {/* Confidence indicator */}
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500 text-sm">Confidence</span>
-            <div className="flex items-center gap-2">
-              <span className={`font-semibold ${confidenceColor}`}>
-                {(confidence * 100).toFixed(0)}%
-              </span>
-              <span className="text-xs text-gray-500 capitalize">
-                ({confidenceLevel})
-              </span>
+          {/* Service status banner */}
+          {isServiceUnavailable && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="text-yellow-500 font-medium">AI Service Unavailable</p>
+                <p className="text-gray-400 text-xs mt-1">
+                  {serviceStatus?.message || 'Location prediction is currently unavailable. Image saved for future analysis.'}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Confidence indicator */}
+          {!isServiceUnavailable && (
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-sm">Confidence</span>
+              <div className="flex items-center gap-2">
+                <span className={`font-semibold ${confidenceColor}`}>
+                  {(confidence * 100).toFixed(0)}%
+                </span>
+                <span className="text-xs text-gray-500 capitalize">
+                  ({confidenceLevel})
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Explanation */}
           <button
