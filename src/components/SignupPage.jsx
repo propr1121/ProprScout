@@ -87,6 +87,22 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
       setFormError('Password must be at least 8 characters');
       return false;
     }
+    if (!/[a-z]/.test(formData.password)) {
+      setFormError('Password must contain at least one lowercase letter');
+      return false;
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      setFormError('Password must contain at least one uppercase letter');
+      return false;
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      setFormError('Password must contain at least one number');
+      return false;
+    }
+    if (!/[^A-Za-z0-9]/.test(formData.password)) {
+      setFormError('Password must contain at least one special character (!@#$%^&*)');
+      return false;
+    }
     if (formData.password !== formData.confirmPassword) {
       setFormError('Passwords do not match');
       return false;
@@ -140,21 +156,6 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
     window.location.href = linkedInAuthUrl;
   };
 
-  // Password strength indicator
-  const getPasswordStrength = () => {
-    const password = formData.password;
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    return strength;
-  };
-
-  const passwordStrength = getPasswordStrength();
-  const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -278,22 +279,27 @@ export default function SignupPage({ onBack, onSwitchToLogin, onSuccess, initial
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  {/* Password strength indicator */}
-                  {formData.password && (
-                    <div className="mt-2">
-                      <div className="flex space-x-1 mb-1">
-                        {[...Array(5)].map((_, i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200'}`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Enter a password'}
-                      </p>
-                    </div>
-                  )}
+                  {/* Password requirements */}
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-gray-500 font-medium">Password must contain:</p>
+                    <ul className="text-xs space-y-0.5">
+                      <li className={formData.password.length >= 8 ? 'text-emerald-600' : 'text-gray-400'}>
+                        {formData.password.length >= 8 ? '✓' : '○'} At least 8 characters
+                      </li>
+                      <li className={/[a-z]/.test(formData.password) ? 'text-emerald-600' : 'text-gray-400'}>
+                        {/[a-z]/.test(formData.password) ? '✓' : '○'} One lowercase letter
+                      </li>
+                      <li className={/[A-Z]/.test(formData.password) ? 'text-emerald-600' : 'text-gray-400'}>
+                        {/[A-Z]/.test(formData.password) ? '✓' : '○'} One uppercase letter
+                      </li>
+                      <li className={/[0-9]/.test(formData.password) ? 'text-emerald-600' : 'text-gray-400'}>
+                        {/[0-9]/.test(formData.password) ? '✓' : '○'} One number
+                      </li>
+                      <li className={/[^A-Za-z0-9]/.test(formData.password) ? 'text-emerald-600' : 'text-gray-400'}>
+                        {/[^A-Za-z0-9]/.test(formData.password) ? '✓' : '○'} One special character (!@#$%^&*)
+                      </li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* Confirm Password */}

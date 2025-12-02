@@ -203,7 +203,12 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        // Handle validation errors with details array
+        if (data.details && Array.isArray(data.details) && data.details.length > 0) {
+          const errorMessages = data.details.map(d => d.msg).join('. ');
+          throw new Error(errorMessages);
+        }
+        throw new Error(data.error || data.message || 'Registration failed');
       }
 
       if (data.success && data.data) {
