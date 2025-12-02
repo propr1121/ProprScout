@@ -317,19 +317,18 @@ function ListingAnalysisRoute() {
 function PhotoLocationSearchRoute() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowRight className="w-4 h-4 rotate-180" />
-            Back to Dashboard
-          </button>
-        </div>
-        <PropertyDetective />
+    <div className="h-screen overflow-hidden relative">
+      {/* Back button overlay */}
+      <div className="absolute top-4 left-4 z-30">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 bg-white/90 backdrop-blur-sm text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg shadow-md transition-colors"
+        >
+          <ArrowRight className="w-4 h-4 rotate-180" />
+          Back to Dashboard
+        </button>
       </div>
+      <PropertyDetective />
     </div>
   );
 }
