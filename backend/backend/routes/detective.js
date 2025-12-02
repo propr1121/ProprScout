@@ -40,6 +40,7 @@ const upload = multer({
  * Requires authentication - uses authenticated user ID
  */
 router.post('/analyze', requireAuth, upload.single('image'), async (req, res) => {
+  const startTime = Date.now();
   try {
     // Validate request
     if (!req.file) {
