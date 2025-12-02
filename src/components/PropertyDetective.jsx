@@ -1,11 +1,11 @@
 /**
- * Property Detective - GeoSpy-Inspired UI
+ * ProprScout Image Search
  * Main orchestrator component for image geolocation analysis
  */
 
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Search, Upload, History, MessageSquare, AlertCircle, Coins } from 'lucide-react';
+import { Search, Upload, AlertCircle, Coins } from 'lucide-react';
 import axios from 'axios';
 
 // Detective components
@@ -65,7 +65,7 @@ export default function PropertyDetective() {
 
   const handleUploadSubmit = useCallback(async ({ file, filename: name }) => {
     if (!isAuthenticated) {
-      setError('Please log in to use Property Detective');
+      setError('Please log in to use Image Search');
       return;
     }
 
@@ -220,7 +220,7 @@ export default function PropertyDetective() {
           <div className="w-16 h-16 bg-[#00d185]/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-[#00d185]" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Property Detective</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Image Search</h2>
           <p className="text-gray-400 mb-6">
             Upload any property photo and our AI will predict its location worldwide.
           </p>
@@ -246,37 +246,6 @@ export default function PropertyDetective() {
         markerImageUrl={result ? uploadedImage : null}
       />
 
-      {/* Left Sidebar - Action buttons */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20">
-        <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] p-2 space-y-2">
-          <button
-            onClick={handleNewSearch}
-            className="p-3 rounded-lg bg-[#00d185] text-white hover:bg-[#00b574] transition-colors"
-            title="New Search"
-          >
-            <Search size={20} />
-          </button>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="p-3 rounded-lg text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors"
-            title="Upload Image"
-          >
-            <Upload size={20} />
-          </button>
-          <button
-            className="p-3 rounded-lg text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors"
-            title="History"
-          >
-            <History size={20} />
-          </button>
-          <button
-            className="p-3 rounded-lg text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors"
-            title="Chat"
-          >
-            <MessageSquare size={20} />
-          </button>
-        </div>
-      </div>
 
       {/* View Mode Toggle (only when results) */}
       {result && !showStreetView && (
@@ -386,7 +355,7 @@ export default function PropertyDetective() {
               <Upload className="w-8 h-8 text-[#00d185]" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
-              Property Detective
+              Image Search
             </h2>
             <p className="text-gray-400 mb-6">
               Upload a property photo to discover its location using AI-powered geolocation.
