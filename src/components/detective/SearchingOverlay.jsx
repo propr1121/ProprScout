@@ -1,6 +1,6 @@
 /**
- * Searching Overlay Component - GeoSpy-inspired design
- * Full-screen "Searching worldwide..." state with animated globe
+ * Searching Overlay Component
+ * Full-screen "Searching Locations..." state with animated globe
  */
 
 import { useEffect, useState } from 'react';
@@ -37,10 +37,10 @@ export default function SearchingOverlay({ imagePreview, isVisible }) {
         </div>
 
         <h3 className="text-white text-xl font-semibold mb-2">
-          Searching worldwide{dots}
+          Searching Locations{dots}
         </h3>
         <p className="text-gray-400 text-sm">
-          Using our AI model for global<br />location prediction
+          Using AI to predict<br />property location
         </p>
       </div>
 
