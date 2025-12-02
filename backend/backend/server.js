@@ -185,10 +185,18 @@ async function initializeServices() {
     await connectMongoDB();
     console.log('✅ MongoDB database initialized');
     
-    // Initialize Redis
-    console.log('🔴 Initializing Redis...');
-    await initRedis();
-    console.log('✅ Redis initialized');
+    // Initialize Redis (optional - gracefully handle if not available)
+    if (process.env.REDIS_URL) {
+      console.log('🔴 Initializing Redis...');
+      try {
+        await initRedis();
+        console.log('✅ Redis initialized');
+      } catch (redisError) {
+        console.warn('⚠️ Redis not available, continuing without caching:', redisError.message);
+      }
+    } else {
+      console.log('⚠️ Redis not configured, skipping (caching disabled)');
+    }
     
     // Initialize Cloudinary
     console.log('☁️ Initializing Cloudinary...');
