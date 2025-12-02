@@ -63,7 +63,7 @@ router.post('/register', registrationRateLimiter, [
     .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
     .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
     .matches(/[0-9]/).withMessage('Password must contain at least one number')
-    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character'),
+    .matches(/[^A-Za-z0-9]/).withMessage('Password must contain at least one special character'),
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('inviteCode').trim().notEmpty().withMessage('Invite code is required')
 ], async (req, res) => {
@@ -650,7 +650,7 @@ router.post('/reset-password', [
     .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
     .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
     .matches(/[0-9]/).withMessage('Password must contain at least one number')
-    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
+    .matches(/[^A-Za-z0-9]/).withMessage('Password must contain at least one special character')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
