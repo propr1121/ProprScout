@@ -48,7 +48,8 @@ ALLOWED_ORIGINS = [
     'http://localhost:3000',  # Frontend in dev
     'https://proprscout.com',
     'https://www.proprscout.com',
-    'https://app.proprscout.com'
+    'https://app.proprscout.com',
+    'https://proprscout.onrender.com'  # Render backend
 ]
 CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
