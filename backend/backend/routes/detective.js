@@ -15,6 +15,7 @@ import { CacheService } from '../services/redis.js';
 import logger from '../utils/logger.js';
 import { notifyAnalysisComplete, checkLowCreditsAndNotify } from '../utils/notifications.js';
 import { requireAuth, optionalAuth } from '../middleware/auth.js';
+import { emitCreditsUsed, emitSearchCompleted } from '../services/commandCenter.js';
 
 const router = express.Router();
 
@@ -152,6 +153,28 @@ router.post('/analyze', requireAuth, upload.single('image'), async (req, res) =>
     
     // Check for low credits and notify
     await checkLowCreditsAndNotify(user_id);
+
+    // Emit Command Center webhooks (non-blocking)
+    const updatedUser = await User.findById(user_id);
+    emitCreditsUsed({
+      userId: user_id,
+      email: req.user.email,
+      creditsUsed: 5, // 5 credits per analysis
+      remainingBalance: updatedUser?.credits?.balance || 0,
+      analysisId: detectiveAnalysis._id.toString()
+    }).catch(err => {
+      logger.error('Failed to emit credits used webhook:', err);
+    });
+
+    emitSearchCompleted({
+      userId: user_id,
+      email: req.user.email,
+      analysisId: detectiveAnalysis._id.toString(),
+      resultsCount: 1,
+      searchType: 'property_detective'
+    }).catch(err => {
+      logger.error('Failed to emit search completed webhook:', err);
+    });
 
     logger.info(`✅ Property Detective analysis completed: ${detectiveAnalysis._id}`);
 

@@ -12,6 +12,7 @@ import {
   sendPaymentConfirmationEmail,
   sendSubscriptionEmail
 } from '../utils/email.js';
+import { emitCreditsPurchased } from '../services/commandCenter.js';
 
 const router = express.Router();
 
@@ -217,6 +218,18 @@ async function handlePaymentSuccess(paymentIntent) {
       transactionId: paymentIntent.id
     }).catch(err => {
       logger.error('Failed to send payment confirmation email:', err);
+    });
+
+    // Emit Command Center webhook for credits/subscription purchase
+    emitCreditsPurchased({
+      userId: user._id.toString(),
+      email: user.email,
+      creditsAdded: plan === 'annual' ? 1000 : 100, // Approximate credits based on plan
+      newBalance: user.credits?.balance || 0,
+      transactionId: paymentIntent.id,
+      paymentMethod: plan === 'annual' ? 'annual_subscription' : 'monthly_subscription'
+    }).catch(err => {
+      logger.error('Failed to emit credits purchased webhook:', err);
     });
 
     logger.info(`Payment notification sent to user ${user.email}`);

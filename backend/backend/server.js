@@ -34,6 +34,7 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import inviteRoutes from './routes/invite.js';
 import integrationsRoutes from './routes/integrations.js';
+import commandCenterRoutes from './routes/commandCenter.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -155,6 +156,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/credits', creditsRoutes);
 app.use('/api/integrations', integrationsRoutes);
+app.use('/api/command-center', commandCenterRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -18,6 +18,10 @@ import {
   sendLoginNotificationEmail,
   sendVerificationEmail
 } from '../utils/email.js';
+import {
+  emitUserCreated,
+  emitBetaCodeRedeemed
+} from '../services/commandCenter.js';
 
 const router = express.Router();
 
@@ -159,6 +163,28 @@ router.post('/register', registrationRateLimiter, [
     sendWelcomeEmail(email, name).catch(err => {
       logger.error('Failed to send welcome email:', err);
     });
+
+    // Emit Command Center webhooks (non-blocking)
+    emitUserCreated({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      inviteCode: inviteCode || null
+    }).catch(err => {
+      logger.error('Failed to emit user created webhook:', err);
+    });
+
+    // Emit beta code redeemed if applicable
+    if (validInviteCode && bonusCredits > 0) {
+      emitBetaCodeRedeemed({
+        userId: user._id.toString(),
+        email: user.email,
+        code: inviteCode,
+        creditsAwarded: bonusCredits
+      }).catch(err => {
+        logger.error('Failed to emit beta code redeemed webhook:', err);
+      });
+    }
 
     res.status(201).json({
       success: true,
